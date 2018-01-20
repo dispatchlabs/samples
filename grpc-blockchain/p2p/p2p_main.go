@@ -2,7 +2,7 @@ package p2p
 
 import (
 	"log"
-	"dispatchlabs/samples/grpc-blockchain/proto"
+	"github.com/dispatchlabs/samples/grpc-blockchain/proto"
 	"github.com/hashicorp/consul/api"
 	"google.golang.org/grpc"
 	"time"

@@ -4,7 +4,7 @@ import (
 	"flag"
 	"log"
 	"time"
-	"dispatchlabs/samples/grpc-blockchain/proto"
+	"github.com/dispatchlabs/samples/grpc-blockchain/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )

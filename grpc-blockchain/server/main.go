@@ -3,8 +3,8 @@ package server
 import (
 	"log"
 	"net"
-	"dispatchlabs/samples/grpc-blockchain/proto"
-	"dispatchlabs/samples/grpc-blockchain/server/blockchain"
+	"github.com/dispatchlabs/samples/grpc-blockchain/proto"
+	"github.com/dispatchlabs/samples/grpc-blockchain/server/blockchain"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
