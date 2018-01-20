@@ -1,8 +1,8 @@
-package main
+package p2p
 
 import (
 	"log"
-	"com.brightapps/src/grpc-blockchain/proto"
+	"dispatchlabs/samples/grpc-blockchain/proto"
 	"github.com/hashicorp/consul/api"
 	"google.golang.org/grpc"
 	"time"

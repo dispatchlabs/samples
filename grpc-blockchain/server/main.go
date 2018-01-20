@@ -1,10 +1,10 @@
-package main
+package server
 
 import (
 	"log"
 	"net"
-	"com.brightapps/src/grpc-blockchain/proto"
-	"com.brightapps/src/grpc-blockchain/server/blockchain"
+	"dispatchlabs/samples/grpc-blockchain/proto"
+	"dispatchlabs/samples/grpc-blockchain/server/blockchain"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
