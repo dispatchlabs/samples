@@ -48,26 +48,21 @@
 ##### VirtualBox
 - Download and install on your machine
 
-
+##### Dox
+- `kubectl get deployments`
+	- `kubectl delete deployment ...`
+- `kubectl get pods`
+	- `kubectl delete pod ...`
+- `minikube dashboard`
 
 # ![](https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_directions_run_black_24px.svg) Run Local Cluster
 - Arch Linux
-	- eval $(minikube docker-env)
+	- `minikube start`
+	- `eval $(minikube docker-env)`
 	- `docker run --detach --publish 5000:5000 --name LocalPrivateRegistry registry:2`
 	- `docker build -t disgo:v1 .` _-> will say `Successfully built XXXXXXXXXXX` the XXX part is `JUST_CREATED_IMAGE_ID` used below_
 -	- `docker tag JUST_CREATED_IMAGE_ID localhost:5000/disgo:v1`
 	- `docker push localhost:5000/disgo:v1`
-	- `docker images`
-	- `minikube start`
-
 	- `kubectl run disgo-private-cluster --image=localhost:5000/disgo:v1 --image-pull-policy=Never`
-	- `kubectl create -f sample.yaml`
-
-	- `kubectl get deployments`
-		- `kubectl delete deployment ...`
-	- `kubectl get pods`
-		- `kubectl delete pod ...`
-	- `minikube dashboard`
-
-- Mac
-	- `eval $(minikube docker-env)`
+	-  OR
+	- `kubectl create -f disgo-private-cluster.yaml`

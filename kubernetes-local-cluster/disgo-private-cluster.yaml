@@ -18,7 +18,7 @@ spec:
         run: disgo-private-cluster
     spec:
       containers:
-      - image: localhost:5000/disgo:v2
+      - image: localhost:5000/disgo:v1
         name: disgo-private-cluster
         ports:
         - containerPort: 1975
