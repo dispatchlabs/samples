@@ -1,0 +1,27 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    run: disgo-private-cluster
+  name: disgo-private-cluster
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: disgo-private-cluster
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        run: disgo-private-cluster
+    spec:
+      containers:
+      - image: localhost:5000/disgo:v2
+        name: disgo-private-cluster
+        ports:
+        - containerPort: 1975
+          protocol: TCP
+        resources: {}
+status: {}

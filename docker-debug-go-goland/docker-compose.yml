@@ -1,0 +1,13 @@
+version: '2'
+services:
+  sample_app:
+    build: .
+    security_opt:
+      - seccomp:unconfined
+    entrypoint: sh ./debug.sh
+    volumes:
+      - .:/go/src
+    ports:
+      - "2345:2345"
+    expose:
+      - "2345"
