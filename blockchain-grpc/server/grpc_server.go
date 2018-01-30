@@ -3,13 +3,14 @@ package server
 import (
 	"log"
 	"net"
-	"github.com/dispatchlabs/samples/grpc-blockchain/proto"
-	"github.com/dispatchlabs/samples/grpc-blockchain/server/blockchain"
+	"github.com/dispatchlabs/samples/blockchain-grpc/proto"
+	"github.com/dispatchlabs/samples/blockchain-grpc/server/blockchain"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
-func main() {
+func Start() {
+	log.Println("Starting Server")
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
 		log.Fatalf("unable to listen port 8080: %v", err)

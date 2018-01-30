@@ -1,49 +1,38 @@
 package blockchain
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"time"
+	"github.com/dispatchlabs/samples/blockchain-grpc/proto"
 )
-
-// Block keeps block headers
-type Block struct {
-	Data          string
-	PrevBlockHash string
-	Hash          string
-	Timestamp     int64
-}
 
 // Blockchain keeps a sequence of Blocks
 type Blockchain struct {
-	Blocks []*Block
+	Blocks []*proto.Block
 }
 
 // setHash calculates and sets block hash
-func (b *Block) setHash() {
-	hash := sha256.Sum256([]byte(b.PrevBlockHash + b.Data))
-	b.Hash = hex.EncodeToString(hash[:])
-}
+
 
 // NewBlock creates and returns Block
-func NewBlock(data string, prevBlockHash string) *Block {
-	block := &Block{data, prevBlockHash, "", time.Now().Unix()}
-	block.setHash()
+func NewBlock(data string, prevBlockHash string) *proto.Block {
+	var block *proto.Block
+	block = &proto.Block{data, prevBlockHash, "", time.Now().Unix()}
+	block.SetHash()
 
 	return block
 }
 
 // NewGenesisBlock creates and returns genesis Block
-func NewGenesisBlock() *Block {
+func NewGenesisBlock() *proto.Block {
 	return NewBlock("Genesis Block", "")
 }
 
-func IsValidNewBlock(newBlock Block, previousBlock Block) bool {
+func IsValidNewBlock(newBlock proto.Block, previousBlock proto.Block) bool {
 	return true
 }
 
 // AddBlock saves provided data as a block in the blockchain
-func (bc *Blockchain) AddBlock(data string) *Block {
+func (bc *Blockchain) AddBlock(data string) *proto.Block {
 	prevBlock := bc.Blocks[len(bc.Blocks)-1]
 	newBlock := NewBlock(data, prevBlock.Hash)
 	bc.Blocks = append(bc.Blocks, newBlock)
@@ -53,5 +42,5 @@ func (bc *Blockchain) AddBlock(data string) *Block {
 
 // NewBlockchain creates a new Blockchain with genesis Block
 func NewBlockchain() *Blockchain {
-	return &Blockchain{[]*Block{NewGenesisBlock()}}
+	return &Blockchain{[]*proto.Block{NewGenesisBlock()}}
 }

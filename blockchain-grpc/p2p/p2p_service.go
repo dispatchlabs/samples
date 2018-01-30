@@ -2,12 +2,12 @@ package p2p
 
 import (
 	"log"
-	"github.com/dispatchlabs/samples/grpc-blockchain/proto"
+	"github.com/dispatchlabs/samples/blockchain-grpc/proto"
 	"github.com/hashicorp/consul/api"
 	"google.golang.org/grpc"
 	"time"
 	"strings"
-	"fmt"
+	"math/rand"
 )
 
 
@@ -57,13 +57,26 @@ func (n *node) Start() {
 
 	// wait for other nodes to come up
 	for {
-		time.Sleep(20 * time.Second)
+		time.Sleep(5 * time.Second)
 		n.GreetAll()
 	}
 }
 
-func test() {
-
+func (n *node) RandomTalk() {
+	kvpairs, _, err := n.SDKV.List("Node", nil)
+	if err != nil {
+		log.Panicln(err)
+		return
+	}
+	for {
+		random := rand.Intn(len(kvpairs)-1)
+		kventry := kvpairs[random]
+		if strings.Compare(kventry.Key, n.Name) != 0 {
+			// not ourself
+			log.Printf("%s at address: %s randomly talking with %s at address: %s", n.Name, n.Addr, kventry.Key, kventry.Value)
+			break
+		}
+	}
 }
 
 func (n *node) SetupClient(name string, addr string) {
@@ -101,31 +114,42 @@ func (n *node) GreetAll() {
 			continue
 		}
 		if n.Clients[kventry.Key] == nil {
-			fmt.Println("New member: ", kventry.Key)
+			log.Printf("%s Discovered %s", n.Name, kventry.Key)
 			// connection not established previously
 			n.SetupClient(kventry.Key, string(kventry.Value))
 		}
 	}
 }
 
+func (n *node) Request(requestor *node) {
+	// get all nodes -- inefficient, but this is just an example
+	kvpairs, _, err := n.SDKV.List("Node", nil)
+	if err != nil {
+		log.Panicln(err)
+		return
+	}
 
-func main() {
-	log.Print("in main")
-	// pass the port as an argument and also the port of the other node
-	//args := os.Args[1:]
-	//
-	//if len(args) < 3 {
-	//	fmt.Println("Arguments required: <name> <listening address> <consul address>")
-	//	os.Exit(1)
-	//}
+	// fmt.Println("Found nodes: ")
+	for _, kventry := range kvpairs {
+		if strings.Compare(kventry.Key, n.Name) == 0 {
+			// ourself
+			continue
+		}
+		if n.Clients[kventry.Key] == nil {
+			log.Printf("%s Discovered %s", n.Name, kventry.Key)
+			// connection not established previously
+			n.SetupClient(kventry.Key, string(kventry.Value))
+		}
+	}
+}
 
-	// args in order
-	name := "Node3"
-	listenaddr := ":5002"
+func Start(nodeName string, port string) *node {
+	log.Print("p2p Start")
 	sdaddress := "localhost:8500"
 
-	noden := node{Name: name, Addr: listenaddr, SDAddress: sdaddress, Clients: nil} // noden is for opeartional purposes
+	noden := node{Name: nodeName, Addr: port, SDAddress: sdaddress, Clients: nil} // noden is for opeartional purposes
 
 	// start the node
-	noden.Start()
+	go noden.Start()
+	return &noden
 }

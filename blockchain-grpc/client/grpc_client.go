@@ -1,20 +1,22 @@
 package client
 
 import (
-	"flag"
 	"log"
 	"time"
-	"github.com/dispatchlabs/samples/grpc-blockchain/proto"
+	"github.com/dispatchlabs/samples/blockchain-grpc/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"fmt"
 )
 
 var client proto.BlockchainClient
 
-func main() {
-	addFlag := flag.Bool("add", false, "Add new block")
-	listFlag := flag.Bool("list", false, "List all blocks")
-	flag.Parse()
+func Start(flag string) {
+	fmt.Println("Starting Client")
+
+	//addFlag := flag.Bool("add", false, "Add new block")
+	//listFlag := flag.Bool("list", false, "List all blocks")
+	//flag.Parse()
 
 	conn, err := grpc.Dial("localhost:8080", grpc.WithInsecure())
 	if err != nil {
@@ -22,14 +24,19 @@ func main() {
 	}
 
 	client = proto.NewBlockchainClient(conn)
-
-	if *addFlag {
+	if flag == "add" {
 		AddBlock()
 	}
-
-	if *listFlag {
+	if flag == "list" {
 		GetBlockchain()
 	}
+	//if *addFlag {
+	//	AddBlock()
+	//}
+	//
+	//if *listFlag {
+	//	GetBlockchain()
+	//}
 }
 
 func AddBlock() {
