@@ -3,7 +3,26 @@ Kubernetes - open source Docker orchestration.
 	- handles scheduling onto nodes in a compute cluster and actively manages workloads to ensure taht their state matches the users declared intentions
 	- using concepts `label` and `pod` it groups the containers which makeup an application into logical units for easy management and discovery
 
+##### From Below
+- Master Components manage nodes (aka kublets)
+	- `Kublet` manages
+		- `Pod` - a group of co-located group of apps running with a shared context
+			- containers
+			- images
+			- volumes
+			- etc
+- When launching docker containers you do `port mapping` aka `docker run -p 80:8080`
+- Kubernetes model is different: a `unique IP address` should be assigned to each `pod`
+	- 1 `pod` == logically grouped docker containers
+- Because pods can be on different machines, there needs to be a `network overlay` that 
+ensures there can be communication between the pods on different nodes
+- This where `flannel` comes in: it will give each pod an IP address they can use for 
+communication to other pods between nodes
+	- `flannel` uses `etcd` to store the network configuration
+
+
 ![](karch.png "")
+![](farch.png "")
 
 # ![](https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_done_black_24px.svg) Docker Install
 - Mac (https://docs.docker.com/docker-for-mac)
