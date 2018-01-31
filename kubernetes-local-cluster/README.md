@@ -3,7 +3,7 @@ Kubernetes - open source Docker orchestration.
 	- handles scheduling onto nodes in a compute cluster and actively manages workloads to ensure taht their state matches the users declared intentions
 	- using concepts `label` and `pod` it groups the containers which makeup an application into logical units for easy management and discovery
 
-[](karch.png "")
+![](karch.png "")
 
 # ![](https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_done_black_24px.svg) Docker Install
 - Mac (https://docs.docker.com/docker-for-mac)
