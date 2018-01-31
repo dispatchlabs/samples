@@ -82,13 +82,23 @@ communication to other pods between nodes
 - `minikube dashboard`
 
 # ![](https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_directions_run_black_24px.svg) Run Local Cluster
-- Arch Linux
-	- `minikube start`
-	- `eval $(minikube docker-env)`
-	- `docker run --detach --publish 5000:5000 --name LocalPrivateRegistry registry:2`
+- Start `Kubernetes` AND Run `Docker Private Registry` inside it
+	- `minikube start` _starts a local kubernetes cluster, use `minikube delete` to start from scratch_
+	- `eval $(minikube docker-env)` _points docker to the docker stuff inside the kubernetes_
+	- `docker run --detach --publish 5000:5000 --name LocalPrivateRegistry registry:2` _runs a docker private registry_
+
+- Prepare Image to run many `disgo` pods
 	- `docker build -t disgo:v1 .` _-> will say `Successfully built XXXXXXXXXXX` the XXX part is `JUST_CREATED_IMAGE_ID` used below_
--	- `docker tag JUST_CREATED_IMAGE_ID localhost:5000/disgo:v1`
+	- `docker tag JUST_CREATED_IMAGE_ID localhost:5000/disgo:v1`
 	- `docker push localhost:5000/disgo:v1`
-	- `kubectl run disgo-private-cluster --image=localhost:5000/disgo:v1 --image-pull-policy=Never`
-	-  OR
-	- `kubectl create -f disgo-private-cluster.yaml`
+- Run few PODs, each will get its own IP
+	- `kubectl run disgo-node1 --image=localhost:5000/disgo:v1 --port=1975 --image-pull-policy=Never`
+	- `kubectl run disgo-node2 --image=localhost:5000/disgo:v1 --port=1975 --image-pull-policy=Never`
+	- `kubectl run disgo-node3 --image=localhost:5000/disgo:v1 --port=1975 --image-pull-policy=Never`
+	- `kubectl run disgo-node4 --image=localhost:5000/disgo:v1 --port=1975 --image-pull-policy=Never`
+
+- Fix This
+	- `kubectl create -f disgo.yaml`
+
+![](ipport.png "")
+![](minikube-dashboard.png "")

@@ -6,5 +6,5 @@ ENV PATH /go/bin:$PATH
 ADD . /go/src
 WORKDIR /go/src
 
-RUN go get github.com/DispatchLabs/disgo
-ENTRYPOINT cd github.com/DispatchLabs/disgo && go run main.go
+RUN go get github.com/dispatchlabs/disgo
+ENTRYPOINT cd github.com/dispatchlabs/disgo && go run main.go
