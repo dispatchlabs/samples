@@ -82,7 +82,7 @@ If something is not working as expected restart the daemon.
 
 
 
-# Sample Sesion
+# Sample Session
 - Terminal 1
 	- `ipfs daemon`
 - Terminal 2
@@ -94,7 +94,7 @@ If something is not working as expected restart the daemon.
 		- `ipfs add test-file.text` will output the hash for the new file on the network
 		- Refresh the WebUI and see it there under the `Files`
 		- `ipfs cat /ipfs/NEW_HASH` will show `Test Content`
-		OR
+		- OR
 		- In the Web UI under the `DAG` type the `NEW_HASH` value and hit go, then RAW to see the file content or the video
 	- Remove File and all other content (if no one except you accessed it)
 		- `ipfs pin rm $HASH1`
