@@ -64,7 +64,7 @@ After=network.target
 
 [Service]
 WorkingDirectory=/go-binaries
-ExecStart=/go-binaries/disgo -seed -nodeId=NODE-Seed-001
+ExecStart=/go-binaries/disgo -asSeed -nodeId=NODE-Seed-001
 Restart=on-failure
 
 User=dispatch-services
