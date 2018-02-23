@@ -11,7 +11,7 @@ Example for `https://github.com/dispatchlabs/disgo`
 
 	git checkout -b pr-feature-1
 
-	git pull https://github.com/__USER__/disgo.git master
+	git pull https://github.com/__USER__/disgo.git
 
 	git checkout master
 	git merge --no-ff --no-commit pr-feature-1
