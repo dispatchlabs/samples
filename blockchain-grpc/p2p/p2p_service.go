@@ -2,14 +2,14 @@ package p2p
 
 import (
 	"log"
+	"math/rand"
+	"strings"
+	"time"
+
 	"github.com/dispatchlabs/samples/blockchain-grpc/proto"
 	"github.com/hashicorp/consul/api"
 	"google.golang.org/grpc"
-	"time"
-	"strings"
-	"math/rand"
 )
-
 
 type node struct {
 	// Self information
@@ -69,7 +69,7 @@ func (n *node) RandomTalk() {
 		return
 	}
 	for {
-		random := rand.Intn(len(kvpairs)-1)
+		random := rand.Intn(len(kvpairs) - 1)
 		kventry := kvpairs[random]
 		if strings.Compare(kventry.Key, n.Name) != 0 {
 			// not ourself
@@ -86,8 +86,8 @@ func (n *node) SetupClient(name string, addr string) {
 	if err != nil {
 		log.Fatalf("cannot dial server: %v", err)
 	}
-
 	defer conn.Close()
+
 	n.Clients[name] = proto.NewBlockchainClient(conn)
 
 	//r, err := n.Clients[name].SayHello(context.Background(), &hs.HelloRequest{Name: n.Name})

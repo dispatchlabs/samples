@@ -1,12 +1,13 @@
 package client
 
 import (
+	"fmt"
 	"log"
 	"time"
+
 	"github.com/dispatchlabs/samples/blockchain-grpc/proto"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"fmt"
 )
 
 var client proto.BlockchainClient
@@ -22,6 +23,7 @@ func Start(flag string) {
 	if err != nil {
 		log.Fatalf("cannot dial server: %v", err)
 	}
+	defer conn.Close()
 
 	client = proto.NewBlockchainClient(conn)
 	if flag == "add" {
