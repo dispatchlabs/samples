@@ -13,19 +13,19 @@ cd /go-binaries
 sudo useradd dispatch-services -s /sbin/nologin -M
 sudo chown -R dispatch-services:dispatch-services /go-binaries
 
-sudo echo '[Unit]'							>> /etc/systemd/system/dispatch-disgo-node.service
-sudo echo 'Description=Dispatch Disgo Node'	>> /etc/systemd/system/dispatch-disgo-node.service
-sudo echo 'After=network.targetecho'			>> /etc/systemd/system/dispatch-disgo-node.servicesudo 
+sudo echo '[Unit]'							| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
+sudo echo 'Description=Dispatch Disgo Node'	| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
+sudo echo 'After=network.targetecho'		| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
 
-sudo echo '[Service]'						>> /etc/systemd/system/dispatch-disgo-node.service
-sudo echo 'WorkingDirectory=/go-binaries'	>> /etc/systemd/system/dispatch-disgo-node.service
-sudo echo 'ExecStart=/go-binaries/disgo'		>> /etc/systemd/system/dispatch-disgo-node.service
-sudo echo 'Restart=on-failureecho'
-sudo echo 'User=dispatch-services'			>> /etc/systemd/system/dispatch-disgo-node.service
-sudo echo 'Group=dispatch-servicesecho'		>> /etc/systemd/system/dispatch-disgo-node.servicesudo 
+sudo echo '[Service]'						| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
+sudo echo 'WorkingDirectory=/go-binaries'	| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
+sudo echo 'ExecStart=/go-binaries/disgo'	| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
+sudo echo 'Restart=on-failureecho'			| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
+sudo echo 'User=dispatch-services'			| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
+sudo echo 'Group=dispatch-servicesecho'		| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
 
-sudo echo '[Install]'						>> /etc/systemd/system/dispatch-disgo-node.service
-sudo echo 'WantedBy=multi-user.target'		>> /etc/systemd/system/dispatch-disgo-node.service
+sudo echo '[Install]'						| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
+sudo echo 'WantedBy=multi-user.target'		| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
 
 sudo systemctl enable dispatch-disgo-node
 sudo systemctl start dispatch-disgo-node

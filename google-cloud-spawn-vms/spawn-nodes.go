@@ -41,6 +41,8 @@ func main() {
 
 	// gcloud compute ssh test-net-1-1-seed-0  --command "curl https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms/vm-debian9-configure.sh -o vm-debian9-configure.sh"
 
+	// gcloud compute ssh test-net-1-1-seed-0  --command "curl https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms/vm-debian9-configure-part1.sh -o vm-debian9-configure-part1.sh && curl https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms/vm-debian9-configure-part2.sh -o vm-debian9-configure-part2.sh"
+
 	// for i := 0; i < seedsCount; i++ {
 	// 	exec.Command("sh", "-c", fmt.Sprintf(
 	// 		"gcloud compute scp ~/%s %s-seed-%d:~/%s",
