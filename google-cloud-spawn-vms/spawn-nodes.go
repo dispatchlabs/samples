@@ -6,7 +6,7 @@ import (
 	"sync"
 )
 
-var seedsCount = 3
+var seedsCount = 5
 var seedImageProject = "debian-cloud"
 var seedImageFamily = "debian-9"
 var seedMachineType = "f1-micro"
