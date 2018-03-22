@@ -3,53 +3,79 @@ package main
 import (
 	"fmt"
 	"os/exec"
+	"sync"
 )
 
-var seedsCount = 1
+var seedsCount = 3
 var seedImageProject = "debian-cloud"
 var seedImageFamily = "debian-9"
 var seedMachineType = "f1-micro"
 var seedTags = "disgo-node"
 var seedStartupScript = "vm-debian9-configure.sh"
 
-// var nodeSystemDServiceFile = "dispatch-disgo-node.service"
-
 // var delegatesCount = 21
 // var nodesCount = 50
 var vmPrefix = "test-net-1-1"
 
+var nodeScriptConfigURL = "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms"
+var nodeScriptConfigFile1 = "vm-debian9-configure-part1.sh"
+var nodeScriptConfigFile2 = "vm-debian9-configure-part2.sh"
+
 func main() {
-	// rawData, _ := ioutil.ReadFile(seedStartupScript)
-	// seedStartupScriptContent := string(rawData)
+	var wg sync.WaitGroup
 
 	for i := 0; i < seedsCount; i++ {
-		var gccliCommand = fmt.Sprintf(
-			"gcloud compute instances create %s-seed-%d --image-project %s --image-family %s --machine-type %s --tags %s", // --metadata startup-script='%s'",
+
+		// Command to CREATE new VM Instance
+		var createVM = fmt.Sprintf(
+			"gcloud compute instances create %s-seed-%d --image-project %s --image-family %s --machine-type %s --tags %s",
 			vmPrefix,
 			i,
 			seedImageProject,
 			seedImageFamily,
 			seedMachineType,
 			seedTags,
-			// seedStartupScriptContent,
 		)
 
-		fmt.Println("Running: ", gccliCommand)
+		// Command to DOWNLOAD BASH scripts to the newly created VM
+		var downloadScriptFiles = fmt.Sprintf(
+			"gcloud compute ssh %s-seed-%d --command 'curl %s/%s -o %s && curl %s/%s -o %s'",
+			vmPrefix,
+			i,
 
-		exec.Command("sh", "-c", gccliCommand).Run()
+			nodeScriptConfigURL,
+			nodeScriptConfigFile1,
+			nodeScriptConfigFile1,
+
+			nodeScriptConfigURL,
+			nodeScriptConfigFile2,
+			nodeScriptConfigFile2,
+		)
+
+		// Commands to RUN scripts
+		var execScript1 = fmt.Sprintf(
+			"gcloud compute ssh %s-seed-%d --command 'bash %s'",
+			vmPrefix,
+			i,
+			nodeScriptConfigFile1,
+		)
+		var execScript2 = fmt.Sprintf(
+			"gcloud compute ssh %s-seed-%d --command 'bash %s'",
+			vmPrefix,
+			i,
+			nodeScriptConfigFile2,
+		)
+
+		// Run all the commands in sequential order inside the new VM
+		// Each VM is created in PARALLEL
+		wg.Add(1)
+		go func(cmds ...string) {
+			for _, cmd := range cmds {
+				exec.Command("sh", "-c", cmd).Run()
+			}
+			wg.Done()
+		}(createVM, downloadScriptFiles, execScript1, execScript2)
 	}
 
-	// gcloud compute ssh test-net-1-1-seed-0  --command "curl https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms/vm-debian9-configure.sh -o vm-debian9-configure.sh"
-
-	// gcloud compute ssh test-net-1-1-seed-0  --command "curl https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms/vm-debian9-configure-part1.sh -o vm-debian9-configure-part1.sh && curl https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms/vm-debian9-configure-part2.sh -o vm-debian9-configure-part2.sh"
-
-	// for i := 0; i < seedsCount; i++ {
-	// 	exec.Command("sh", "-c", fmt.Sprintf(
-	// 		"gcloud compute scp ~/%s %s-seed-%d:~/%s",
-	// 		nodeSystemDServiceFile,
-	// 		vmPrefix,
-	// 		i,
-	// 		nodeSystemDServiceFile,
-	// 	)).Run()
-	// }
+	wg.Wait()
 }
