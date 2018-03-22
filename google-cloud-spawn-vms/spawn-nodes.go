@@ -162,7 +162,7 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig config.DisgoPropertie
 			var configFileName = randString(20) + ".json"
 			file, error := os.Create(configFileName)
 			if error == nil {
-				bytes, error := json.Marshal(&config.Properties)
+				bytes, error := json.Marshal(&disgoConfig)
 				if error == nil {
 					fmt.Fprintf(file, string(bytes))
 					file.Close()
