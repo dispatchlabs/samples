@@ -15,7 +15,7 @@ var seedStartupScript = "vm-debian9-configure.sh"
 
 // var delegatesCount = 21
 // var nodesCount = 50
-var vmPrefix = "TEMP-test-net-1-1"
+var vmPrefix = "temp-test-net-1-1"
 
 var nodeScriptConfigURL = "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms"
 var nodeScriptConfigFile = "vm-debian9-configure.sh"
