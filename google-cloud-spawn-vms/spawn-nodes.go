@@ -18,8 +18,7 @@ var seedStartupScript = "vm-debian9-configure.sh"
 var vmPrefix = "nicolae-test-net-1-1"
 
 var nodeScriptConfigURL = "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms"
-var nodeScriptConfigFile1 = "vm-debian9-configure-part1.sh"
-var nodeScriptConfigFile2 = "vm-debian9-configure-part2.sh"
+var nodeScriptConfigFile = "vm-debian9-configure.sh"
 
 func main() {
 	var wg sync.WaitGroup
@@ -39,17 +38,13 @@ func main() {
 
 		// Command to DOWNLOAD BASH scripts to the newly created VM
 		var downloadScriptFiles = fmt.Sprintf(
-			"gcloud compute ssh %s-seed-%d --command 'curl %s/%s -o %s && curl %s/%s -o %s'",
+			"gcloud compute ssh %s-seed-%d --command 'curl %s/%s -o %s'",
 			vmPrefix,
 			i,
 
 			nodeScriptConfigURL,
-			nodeScriptConfigFile1,
-			nodeScriptConfigFile1,
-
-			nodeScriptConfigURL,
-			nodeScriptConfigFile2,
-			nodeScriptConfigFile2,
+			nodeScriptConfigFile,
+			nodeScriptConfigFile,
 		)
 
 		// Commands to RUN scripts
@@ -57,14 +52,8 @@ func main() {
 			"gcloud compute ssh %s-seed-%d --command 'bash %s'",
 			vmPrefix,
 			i,
-			nodeScriptConfigFile1,
+			nodeScriptConfigFile,
 		)
-		// var execScript2 = fmt.Sprintf(
-		// 	"gcloud compute ssh %s-seed-%d --command 'bash %s'",
-		// 	vmPrefix,
-		// 	i,
-		// 	nodeScriptConfigFile2,
-		// )
 
 		// RUN VM creation in PARALLEL
 		// Run COMMANDS inside the VM in sequential order
