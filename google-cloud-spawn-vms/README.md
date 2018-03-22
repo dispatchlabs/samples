@@ -8,6 +8,7 @@
 	- `https://cloud.google.com/compute/docs/gcloud-compute`
 	- `https://cloud.google.com/compute/docs/instances/create-start-instance`
 	- `https://cloud.google.com/compute/docs/machine-types`
+	- `https://cloud.google.com/sdk/gcloud/reference/compute`
 - practical
 	- `export CLOUDSDK_COMPUTE_ZONE=ZONE`
 	- `export CLOUDSDK_COMPUTE_REGION=REGION`
