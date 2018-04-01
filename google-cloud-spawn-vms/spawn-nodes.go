@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 
@@ -25,10 +26,10 @@ type VMsConfig struct {
 }
 
 func main() {
-	var seedsCount = 3
-	var delegatesCount = 6
-	var nodesCount = 10
-	var namePrefix = "temp-test-net-1-1"
+	var seedsCount = 1
+	var delegatesCount = 1
+	var nodesCount = 1
+	var namePrefix = "g-load-test-net-1-1"
 
 	// Create SEEDs
 	createVMs(
@@ -114,6 +115,27 @@ func main() {
 	)
 }
 
+// Get the underlying OS command shell
+func getOSC() string {
+
+	osc := "sh"
+	if runtime.GOOS == "windows" {
+		osc = "cmd"
+	}
+
+	return osc
+}
+
+// Get the shell/command startup option to execute commands
+func getOSE() string {
+
+	ose := "-c"
+	if runtime.GOOS == "windows" {
+		ose = "/c"
+	}
+	return ose
+}
+
 func createVMs(count int, vmsConfig VMsConfig, disgoConfig config.DisgoProperties) {
 	var wg sync.WaitGroup
 
@@ -151,8 +173,13 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig config.DisgoPropertie
 		// Run COMMANDS inside the VM in SEQUENTIAL order
 		wg.Add(1)
 		go func(vmName string, disgoConfig config.DisgoProperties, cmds ...string) {
+
+			osc := getOSC()
+			ose := getOSE()
+
 			for _, cmd := range cmds {
-				exec.Command("sh", "-c", cmd).Run()
+				fmt.Println(cmd)
+				exec.Command(osc, ose, cmd).Run()
 			}
 
 			disgoConfig.NodeId = vmName
@@ -169,8 +196,8 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig config.DisgoPropertie
 
 					var fullFileName, _ = filepath.Abs(configFileName)
 
-					exec.Command("sh", "-c", fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)).Run()
-					exec.Command("sh", "-c", fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)).Run()
+					exec.Command(osc, ose, fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)).Run()
+					exec.Command(osc, ose, fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)).Run()
 
 					os.Remove(configFileName)
 				}
@@ -184,7 +211,7 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig config.DisgoPropertie
 }
 
 func getVMIP(vmName string) string {
-	out, err := exec.Command("sh", "-c", fmt.Sprintf(
+	out, err := exec.Command(getOSC(), getOSE(), fmt.Sprintf(
 		"gcloud compute instances describe %s | grep natIP:",
 		vmName,
 	)).Output()
