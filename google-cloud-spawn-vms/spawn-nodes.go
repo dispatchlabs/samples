@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/dispatchlabs/commons/config"
+	"github.com/dispatchlabs/commons/types"
 )
 
 // VMsConfig - config for a VM in Google Cloud
@@ -27,9 +27,9 @@ type VMsConfig struct {
 
 func main() {
 	var seedsCount = 1
-	var delegatesCount = 1
-	var nodesCount = 1
-	var namePrefix = "g-load-test-net-1-1"
+	var delegatesCount = 4
+	var nodesCount = 0
+	var namePrefix = "test-net-1-1-alpha1"
 
 	// Create SEEDs
 	createVMs(
@@ -43,7 +43,7 @@ func main() {
 			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
 		},
-		config.DisgoProperties{
+		types.Config{
 			HttpPort:          1975,
 			HttpHostIp:        "0.0.0.0",
 			GrpcPort:          1973,
@@ -72,7 +72,7 @@ func main() {
 			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
 		},
-		config.DisgoProperties{
+		types.Config{
 			HttpPort:          1975,
 			HttpHostIp:        "0.0.0.0",
 			GrpcPort:          1973,
@@ -99,7 +99,7 @@ func main() {
 			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
 		},
-		config.DisgoProperties{
+		types.Config{
 			HttpPort:          1975,
 			HttpHostIp:        "0.0.0.0",
 			GrpcPort:          1973,
@@ -136,7 +136,7 @@ func getOSE() string {
 	return ose
 }
 
-func createVMs(count int, vmsConfig VMsConfig, disgoConfig config.DisgoProperties) {
+func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 	var wg sync.WaitGroup
 
 	for i := 0; i < count; i++ {
@@ -172,7 +172,7 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig config.DisgoPropertie
 		// RUN VM creation in PARALLEL
 		// Run COMMANDS inside the VM in SEQUENTIAL order
 		wg.Add(1)
-		go func(vmName string, disgoConfig config.DisgoProperties, cmds ...string) {
+		go func(vmName string, disgoConfig types.Config, cmds ...string) {
 
 			osc := getOSC()
 			ose := getOSE()
