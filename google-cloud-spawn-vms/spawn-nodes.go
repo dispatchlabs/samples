@@ -198,6 +198,7 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 
 					exec.Command(osc, ose, fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)).Run()
 					exec.Command(osc, ose, fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)).Run()
+					exec.Command(osc, ose, fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)).Run()
 
 					os.Remove(configFileName)
 				}
