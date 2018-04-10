@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"github.com/dispatchlabs/commons/types"
+	"github.com/processout/grpc-go-pool"
+	"google.golang.org/grpc"
 )
 
 type Meter struct {
@@ -41,6 +43,18 @@ func loadConfig(file string) Config {
 	return config
 }
 
+func buildGRPCConnectionPool(connections int) *grpcpool.Pool {
+
+	p, err := grpcpool.New(func() (*grpc.ClientConn, error) {
+		return &grpc.ClientConn{}, nil
+	}, 1, connections, 0)
+	if err != nil {
+		fmt.Println("The pool returned an error: %s", err.Error())
+	}
+
+	return p
+}
+
 func createSampleTransaction(cfg *Config) *types.Transaction {
 
 	tx := types.NewTransaction(cfg.PrivateKey, 1,
@@ -50,7 +64,7 @@ func createSampleTransaction(cfg *Config) *types.Transaction {
 	return tx
 }
 
-func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter) http.Response {
+func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcpool.Pool) http.Response {
 
 	byt := []byte(tx.String())
 	buffer := new(bytes.Buffer)
@@ -65,13 +79,14 @@ func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter) http.Respon
 	return *resp
 }
 
-func run(cfg *Config, mtr *Meter) {
+func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 
 	ret := createSampleTransaction(cfg)
 
 	//fmt.Println(ret)
 
-	resp := sendTransaction(ret, cfg, mtr)
+	resp := sendTransaction(ret, cfg, mtr, pool)
+
 	if resp.StatusCode == 200 {
 		if mtr.ResultCount < mtr.Total {
 			mtr.ResultCount++
@@ -87,10 +102,10 @@ func run(cfg *Config, mtr *Meter) {
 	}
 }
 
-func runLoad(cfg *Config, tx int, mtr *Meter) {
+func runLoad(cfg *Config, tx int, mtr *Meter, pool *grpcpool.Pool) {
 
 	for i := 0; i <= tx; i++ {
-		go run(cfg, mtr)
+		go run(cfg, mtr, pool)
 	}
 
 }
@@ -117,10 +132,12 @@ func main() {
 	mtr.End = mtr.Start
 	mtr.Total = 1000
 
+	pool := buildGRPCConnectionPool(10)
+
 	fmt.Println("Strating load test")
 	cfg := loadConfig("./key.json")
 
-	runLoad(&cfg, mtr.Total, &mtr)
+	runLoad(&cfg, mtr.Total, &mtr, Pool)
 
 	wait()
 }
