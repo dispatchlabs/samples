@@ -70,6 +70,15 @@ func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcp
 	buffer := new(bytes.Buffer)
 	buffer.Write(byt)
 
+	client, err := pool.Get (context.Background())
+	if err != null {
+		fmt.Println (err)
+	}
+
+	if client {
+		client.
+	}
+
 	url := "http://" + cfg.DelegateIP + ":1975/v1/transactions"
 	resp, err := http.Post(url, "application/json", buffer)
 	if err != nil {
@@ -78,6 +87,38 @@ func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcp
 	}
 	return *resp
 }
+
+// remoteExecute
+func (this *DAPoSService) remoteExecute(actionType string, payload string) *types.Action {
+	for _, delegate := range this.delegates {
+		contact, err := disgover.GetDisgover().Find(delegate, disgover.GetDisgover().ThisContact)
+		if err != nil {
+			utils.Warn("unable to connect to delegate [host=" + contact.Endpoint.Host + ", port=" + strconv.FormatInt(contact.Endpoint.Port, 10) + "]", err)
+			continue
+		}
+		conn, err := grpc.Dial(fmt.Sprintf("%s:%d", contact.Endpoint.Host, contact.Endpoint.Port), grpc.WithInsecure())
+		if err != nil {
+			utils.Warn("unable to connect to delegate [host=" + contact.Endpoint.Host + ", port=" + strconv.FormatInt(contact.Endpoint.Port, 10) + "]", err)
+			continue
+		}
+		defer conn.Close()
+		client := proto.NewDAPoSGrpcClient(conn)
+		contextWithTimeout, cancel := context.WithTimeout(context.Background(), 2000*time.Millisecond)
+		defer cancel()
+		response, err := client.Execute(contextWithTimeout, &proto.Request{Action: actionType, Payload: payload})
+		if err != nil {
+			utils.Error("unable to execute remote delegate [host=" + contact.Endpoint.Host + ", port=" + strconv.FormatInt(contact.Endpoint.Port, 10) + "]", err)
+			continue
+		}
+		action, err := types.ToActionFromJson([]byte(response.Payload))
+		if err != nil {
+			return types.NewActionWithStatus(actionType, types.StatusInternalError, err.Error())
+		}
+		return action
+	}
+	return types.NewActionWithStatus(actionType, types.StatusUnableToConnectToDelegate, "unable to connect to a delegate")
+}
+
 
 func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 
