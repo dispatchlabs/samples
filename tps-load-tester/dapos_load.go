@@ -4,13 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
+
+	"golang.org/x/net/context"
 
 	"time"
 
 	"github.com/dispatchlabs/commons/types"
+	"github.com/dispatchlabs/commons/utils"
+	"github.com/dispatchlabs/dapos/proto"
 	"github.com/processout/grpc-go-pool"
 	"google.golang.org/grpc"
 )
@@ -43,11 +46,29 @@ func loadConfig(file string) Config {
 	return config
 }
 
+func newConnection() (*grpc.ClientConn, error) {
+
+	cfg := loadConfig("key.json")
+
+	add := fmt.Sprintf("%s:%d", cfg.DelegateIP, 1975)
+	con, err := grpc.Dial(add, grpc.WithInsecure())
+
+	if err != nil {
+
+		return nil, err
+	}
+
+	return con, nil
+}
+
 func buildGRPCConnectionPool(connections int) *grpcpool.Pool {
 
-	p, err := grpcpool.New(func() (*grpc.ClientConn, error) {
-		return &grpc.ClientConn{}, nil
-	}, 1, connections, 0)
+	var f grpcpool.Factory
+
+	f = newConnection
+
+	p, err := grpcpool.New(f, connections, connections, 0)
+
 	if err != nil {
 		fmt.Println("The pool returned an error: %s", err.Error())
 	}
@@ -64,61 +85,64 @@ func createSampleTransaction(cfg *Config) *types.Transaction {
 	return tx
 }
 
-func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcpool.Pool) http.Response {
+func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcpool.Pool) *types.Action {
 
 	byt := []byte(tx.String())
 	buffer := new(bytes.Buffer)
 	buffer.Write(byt)
 
-	client, err := pool.Get (context.Background())
-	if err != null {
-		fmt.Println (err)
-	}
-
-	if client {
-		client.
-	}
-
-	url := "http://" + cfg.DelegateIP + ":1975/v1/transactions"
-	resp, err := http.Post(url, "application/json", buffer)
+	client, err := pool.Get(context.Background())
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Println(err)
 	} else {
-	}
-	return *resp
-}
+		st := client.ClientConn.GetState()
 
-// remoteExecute
-func (this *DAPoSService) remoteExecute(actionType string, payload string) *types.Action {
-	for _, delegate := range this.delegates {
-		contact, err := disgover.GetDisgover().Find(delegate, disgover.GetDisgover().ThisContact)
-		if err != nil {
-			utils.Warn("unable to connect to delegate [host=" + contact.Endpoint.Host + ", port=" + strconv.FormatInt(contact.Endpoint.Port, 10) + "]", err)
-			continue
+		fmt.Println(st.String())
+
+		if client.ClientConn == nil {
+			add := fmt.Sprintf("%s:%d", cfg.DelegateIP, 1975)
+			con, err := grpc.Dial(add, grpc.WithInsecure())
+
+			if err != nil {
+
+				client.ClientConn = con
+			} else {
+				return nil
+			}
 		}
-		conn, err := grpc.Dial(fmt.Sprintf("%s:%d", contact.Endpoint.Host, contact.Endpoint.Port), grpc.WithInsecure())
-		if err != nil {
-			utils.Warn("unable to connect to delegate [host=" + contact.Endpoint.Host + ", port=" + strconv.FormatInt(contact.Endpoint.Port, 10) + "]", err)
-			continue
-		}
-		defer conn.Close()
-		client := proto.NewDAPoSGrpcClient(conn)
-		contextWithTimeout, cancel := context.WithTimeout(context.Background(), 2000*time.Millisecond)
-		defer cancel()
-		response, err := client.Execute(contextWithTimeout, &proto.Request{Action: actionType, Payload: payload})
-		if err != nil {
-			utils.Error("unable to execute remote delegate [host=" + contact.Endpoint.Host + ", port=" + strconv.FormatInt(contact.Endpoint.Port, 10) + "]", err)
-			continue
-		}
+	}
+
+	actionType := types.ActionNewTransaction
+	payLoad := tx.String()
+
+	//defer client.ClientConn.Close()
+
+	p := proto.NewDAPoSGrpcClient(client.ClientConn)
+	contextWithTimeout, cancel := context.WithTimeout(context.Background(), 2000*time.Millisecond)
+	defer cancel()
+	response, err := p.Execute(contextWithTimeout, &proto.Request{Action: actionType, Payload: payLoad})
+	if err != nil {
+		utils.Warn(err)
+
+		//utils.Warn(fmt.Sprintf("unable to execute remote delegate [host=%s, port=%d]", contact.Endpoint.Host, contact.Endpoint.Port), err)
+
+	} else {
 		action, err := types.ToActionFromJson([]byte(response.Payload))
 		if err != nil {
 			return types.NewActionWithStatus(actionType, types.StatusInternalError, err.Error())
 		}
 		return action
 	}
-	return types.NewActionWithStatus(actionType, types.StatusUnableToConnectToDelegate, "unable to connect to a delegate")
-}
 
+	/*url := "http://" + cfg.DelegateIP + ":1975/v1/transactions"
+	resp, err := http.Post(url, "application/json", buffer)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+	}
+	*/
+	return nil
+}
 
 func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 
@@ -128,7 +152,20 @@ func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 
 	resp := sendTransaction(ret, cfg, mtr, pool)
 
-	if resp.StatusCode == 200 {
+	//	var d time.Duration
+	//	d.Nanoseconds = sleep
+
+	for {
+
+		if resp.Status == types.StatusPending {
+			//time.Sleep(d)
+		}
+		if resp.Status == types.StatusOk {
+			break
+		}
+	}
+
+	if resp.Status == types.StatusOk {
 		if mtr.ResultCount < mtr.Total {
 			mtr.ResultCount++
 		} else {
@@ -146,7 +183,7 @@ func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 func runLoad(cfg *Config, tx int, mtr *Meter, pool *grpcpool.Pool) {
 
 	for i := 0; i <= tx; i++ {
-		go run(cfg, mtr, pool)
+		run(cfg, mtr, pool)
 	}
 
 }
@@ -178,7 +215,7 @@ func main() {
 	fmt.Println("Strating load test")
 	cfg := loadConfig("./key.json")
 
-	runLoad(&cfg, mtr.Total, &mtr, Pool)
+	runLoad(&cfg, mtr.Total, &mtr, pool)
 
 	wait()
 }
