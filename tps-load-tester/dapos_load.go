@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"os"
 	"os/signal"
 
@@ -13,6 +15,7 @@ import (
 
 	"github.com/dispatchlabs/commons/types"
 	"github.com/dispatchlabs/commons/utils"
+	"github.com/dispatchlabs/dapos"
 	"github.com/dispatchlabs/dapos/proto"
 	"github.com/processout/grpc-go-pool"
 	"google.golang.org/grpc"
@@ -31,6 +34,8 @@ type Config struct {
 	From       string
 	To         string
 	DelegateIP string
+	GrpcPort   int
+	HTTPPort   string
 }
 
 func loadConfig(file string) Config {
@@ -39,7 +44,7 @@ func loadConfig(file string) Config {
 	configFile, err := os.Open(file)
 	defer configFile.Close()
 	if err != nil {
-		fmt.Println(err.Error())
+		utils.Warn(err.Error())
 	}
 	jsonParser := json.NewDecoder(configFile)
 	jsonParser.Decode(&config)
@@ -54,7 +59,7 @@ func newConnection() (*grpc.ClientConn, error) {
 	con, err := grpc.Dial(add, grpc.WithInsecure())
 
 	if err != nil {
-
+		utils.Error(err.Error())
 		return nil, err
 	}
 
@@ -64,13 +69,12 @@ func newConnection() (*grpc.ClientConn, error) {
 func buildGRPCConnectionPool(connections int) *grpcpool.Pool {
 
 	var f grpcpool.Factory
-
 	f = newConnection
 
 	p, err := grpcpool.New(f, connections, connections, -1)
 
 	if err != nil {
-		fmt.Println("The pool returned an error: %s", err.Error())
+		utils.Error(err.Error())
 	}
 
 	return p
@@ -78,6 +82,7 @@ func buildGRPCConnectionPool(connections int) *grpcpool.Pool {
 
 func createSampleTransaction(cfg *Config) *types.Transaction {
 
+	// TODO:  Make a wallet bucket ... many wallets and add coins
 	tx := types.NewTransaction(cfg.PrivateKey, 1,
 		cfg.From,
 		cfg.To, 1, time.Now())
@@ -85,7 +90,7 @@ func createSampleTransaction(cfg *Config) *types.Transaction {
 	return tx
 }
 
-func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcpool.Pool) *types.Action {
+func sendGprcTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcpool.Pool) *types.Action {
 
 	byt := []byte(tx.String())
 	buffer := new(bytes.Buffer)
@@ -95,11 +100,9 @@ func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcp
 	defer client.Close()
 
 	if err != nil {
-		fmt.Println(err)
+		utils.Warn(err.Error())
 	} else {
 		client.ClientConn.GetState()
-
-		//fmt.Println(st.String())
 
 		if client.ClientConn == nil {
 			add := fmt.Sprintf("%s:%d", cfg.DelegateIP, 1973)
@@ -125,9 +128,6 @@ func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcp
 	response, err := p.Execute(contextWithTimeout, &proto.Request{Action: actionType, Payload: payLoad})
 	if err != nil {
 		utils.Warn(err)
-
-		//utils.Warn(fmt.Sprintf("unable to execute remote delegate [host=%s, port=%d]", contact.Endpoint.Host, contact.Endpoint.Port), err)
-
 	} else {
 		action, err := types.ToActionFromJson([]byte(response.Payload))
 		if err != nil {
@@ -136,31 +136,38 @@ func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcp
 		return action
 	}
 
-	/*url := "http://" + cfg.DelegateIP + ":1975/v1/transactions"
+	return nil
+}
+
+func sendHttpTransaction(tx *types.Transaction, cfg *Config, mtr *Meter) (http.Response, string) {
+
+	var bodyString string
+
+	byt := []byte(tx.String())
+	buffer := new(bytes.Buffer)
+	buffer.Write(byt)
+
+	url := "http://" + cfg.DelegateIP + ":" + cfg.HTTPPort + "/v1/transactions"
 	resp, err := http.Post(url, "application/json", buffer)
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
 	}
-	*/
-	return nil
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyString = string(bodyBytes)
+	}
+
+	return *resp, bodyString
 }
 
 func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 
 	ret := createSampleTransaction(cfg)
-
-	//fmt.Println(ret)
-
-	resp := sendTransaction(ret, cfg, mtr, pool)
-
-	//	var d time.Duration
-	//	d.Nanoseconds = sleep
-
-	//	actionType := types.ActionGetAction
-	//	payLoad := resp.Id
-
-	//act := dapos.GetAction(resp.Id)
+	resp := sendGprcTransaction(ret, cfg, mtr, pool)
 
 	if resp.Status == types.StatusPending {
 		if mtr.ResultCount < mtr.Total {
@@ -181,10 +188,70 @@ func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 	}
 }
 
-func runLoad(cfg *Config, tx int, mtr *Meter, pool *grpcpool.Pool) {
+func getHttpReceipt(id string) string {
+
+	var waiting bool
+	var action *types.Action
+	waiting = true
+
+	service := dapos.GetDAPoSService()
+
+	for waiting {
+		action = service.GetAction(id)
+
+		if action.Status == types.StatusPending {
+			time.Sleep(500 * time.Millisecond)
+		} else {
+			return action.Status
+		}
+	}
+	return types.StatusInternalError
+}
+
+func runHttp(cfg *Config, mtr *Meter) {
+	ret := createSampleTransaction(cfg)
+
+	//fmt.Println(ret)
+
+	resp, body := sendHttpTransaction(ret, cfg, mtr)
+	fmt.Println(body)
+
+	if resp.StatusCode == 200 {
+
+		action, err := types.ToActionFromJson([]byte(body))
+		if err != nil {
+			utils.Warn(err)
+		}
+		status := getHttpReceipt(action.Id)
+
+		if status != types.StatusOk {
+			utils.Warn("Transaction Failed or rejected")
+		} else {
+
+		}
+		if mtr.ResultCount < mtr.Total {
+			mtr.ResultCount++
+		} else {
+			if mtr.End == mtr.Start {
+				mtr.End = time.Now()
+
+				fmt.Println("Calculating")
+				fmt.Println("Total TX %d, Time Diff %d", mtr.Total, time.Since(mtr.Start))
+				fmt.Println("DONE")
+			}
+		}
+	}
+}
+
+func runLoad(cfg *Config, tx int, mtr *Meter, pool *grpcpool.Pool, runType string) {
 
 	for i := 0; i <= tx; i++ {
-		go run(cfg, mtr, pool)
+		if runType == "GRPC" {
+			go run(cfg, mtr, pool)
+		}
+		if runType == "HTTP" {
+			runHttp(cfg, mtr)
+		}
 	}
 
 }
@@ -216,7 +283,14 @@ func main() {
 	fmt.Println("Strating load test")
 	cfg := loadConfig("./key.json")
 
-	runLoad(&cfg, mtr.Total, &mtr, pool)
+	runLoad(&cfg, mtr.Total, &mtr, pool, "HTTP")
+
+	mtr.ResultCount = 0
+	mtr.Start = time.Now()
+	mtr.End = mtr.Start
+	mtr.Total = 1000
+
+	runLoad(&cfg, mtr.Total, &mtr, pool, "GRPC")
 
 	wait()
 }
