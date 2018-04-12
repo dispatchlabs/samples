@@ -50,7 +50,7 @@ func newConnection() (*grpc.ClientConn, error) {
 
 	cfg := loadConfig("key.json")
 
-	add := fmt.Sprintf("%s:%d", cfg.DelegateIP, 1975)
+	add := fmt.Sprintf("%s:%d", cfg.DelegateIP, 1973)
 	con, err := grpc.Dial(add, grpc.WithInsecure())
 
 	if err != nil {
@@ -67,7 +67,7 @@ func buildGRPCConnectionPool(connections int) *grpcpool.Pool {
 
 	f = newConnection
 
-	p, err := grpcpool.New(f, connections, connections, 0)
+	p, err := grpcpool.New(f, connections, connections, -1)
 
 	if err != nil {
 		fmt.Println("The pool returned an error: %s", err.Error())
@@ -92,15 +92,17 @@ func sendTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcp
 	buffer.Write(byt)
 
 	client, err := pool.Get(context.Background())
+	defer client.Close()
+
 	if err != nil {
 		fmt.Println(err)
 	} else {
-		st := client.ClientConn.GetState()
+		client.ClientConn.GetState()
 
-		fmt.Println(st.String())
+		//fmt.Println(st.String())
 
 		if client.ClientConn == nil {
-			add := fmt.Sprintf("%s:%d", cfg.DelegateIP, 1975)
+			add := fmt.Sprintf("%s:%d", cfg.DelegateIP, 1973)
 			con, err := grpc.Dial(add, grpc.WithInsecure())
 
 			if err != nil {
@@ -155,19 +157,18 @@ func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 	//	var d time.Duration
 	//	d.Nanoseconds = sleep
 
-	for {
+	//	actionType := types.ActionGetAction
+	//	payLoad := resp.Id
 
-		if resp.Status == types.StatusPending {
-			//time.Sleep(d)
-		}
-		if resp.Status == types.StatusOk {
-			break
-		}
-	}
+	//act := dapos.GetAction(resp.Id)
 
-	if resp.Status == types.StatusOk {
+	if resp.Status == types.StatusPending {
 		if mtr.ResultCount < mtr.Total {
 			mtr.ResultCount++
+
+			if mtr.ResultCount%100 == 0 {
+				fmt.Println(mtr.ResultCount)
+			}
 		} else {
 			if mtr.End == mtr.Start {
 				mtr.End = time.Now()
@@ -183,7 +184,7 @@ func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 func runLoad(cfg *Config, tx int, mtr *Meter, pool *grpcpool.Pool) {
 
 	for i := 0; i <= tx; i++ {
-		run(cfg, mtr, pool)
+		go run(cfg, mtr, pool)
 	}
 
 }
