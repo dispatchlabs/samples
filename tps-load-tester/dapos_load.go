@@ -208,12 +208,9 @@ func getHttpReceipt(id string) string {
 	return types.StatusInternalError
 }
 
-func runHttp(cfg *Config, mtr *Meter) {
-	ret := createSampleTransaction(cfg)
+func runHttp(cfg *Config, mtr *Meter, tx *types.Transaction, track bool) {
 
-	//fmt.Println(ret)
-
-	resp, body := sendHttpTransaction(ret, cfg, mtr)
+	resp, body := sendHttpTransaction(tx, cfg, mtr)
 	fmt.Println(body)
 
 	if resp.StatusCode == 200 {
@@ -229,15 +226,18 @@ func runHttp(cfg *Config, mtr *Meter) {
 		} else {
 
 		}
-		if mtr.ResultCount < mtr.Total {
-			mtr.ResultCount++
-		} else {
-			if mtr.End == mtr.Start {
-				mtr.End = time.Now()
 
-				fmt.Println("Calculating")
-				fmt.Println("Total TX %d, Time Diff %d", mtr.Total, time.Since(mtr.Start))
-				fmt.Println("DONE")
+		if track {
+			if mtr.ResultCount < mtr.Total {
+				mtr.ResultCount++
+			} else {
+				if mtr.End == mtr.Start {
+					mtr.End = time.Now()
+
+					fmt.Println("Calculating")
+					fmt.Println("Total TX %d, Time Diff %d", mtr.Total, time.Since(mtr.Start))
+					fmt.Println("DONE")
+				}
 			}
 		}
 	}
@@ -250,7 +250,8 @@ func runLoad(cfg *Config, tx int, mtr *Meter, pool *grpcpool.Pool, runType strin
 			go run(cfg, mtr, pool)
 		}
 		if runType == "HTTP" {
-			runHttp(cfg, mtr)
+			tx := createSampleTransaction(cfg)
+			runHttp(cfg, mtr, tx, true)
 		}
 	}
 
@@ -270,7 +271,37 @@ func wait() {
 	<-cleanupDone
 }
 
+func fillWalletsFromGenisis(cfg *Config, mtr *Meter, wallets *[]types.Wallet, amount int64) {
+
+	for i := 0; i < len(*wallets); i++ {
+
+		w := (*wallets)[i]
+
+		tx := types.NewTransaction(cfg.PrivateKey, 1,
+			cfg.From,
+			w.Address, amount, time.Now())
+
+		runHttp(cfg, mtr, tx, false)
+	}
+
+}
+
+func makeWallets(num int) *[]types.Wallet {
+
+	var wallets []types.Wallet
+
+	for i := 0; i < num; i++ {
+		w := types.NewWallet()
+
+		wallets = append(wallets, *w)
+	}
+
+	return &wallets
+}
+
 func main() {
+
+	var defaultCoins int64
 
 	var mtr Meter
 	mtr.ResultCount = 0
@@ -278,10 +309,15 @@ func main() {
 	mtr.End = mtr.Start
 	mtr.Total = 1000
 
-	pool := buildGRPCConnectionPool(10)
+	defaultCoins = 1000
 
 	fmt.Println("Strating load test")
 	cfg := loadConfig("./key.json")
+
+	wallets := makeWallets(mtr.Total * 2)
+	fillWalletsFromGenisis(&cfg, &mtr, wallets, defaultCoins)
+
+	pool := buildGRPCConnectionPool(10)
 
 	runLoad(&cfg, mtr.Total, &mtr, pool, "HTTP")
 
