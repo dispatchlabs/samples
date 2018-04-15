@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/dispatchlabs/commons/types"
 	"github.com/dispatchlabs/commons/utils"
-	"github.com/dispatchlabs/dapos"
 	"github.com/dispatchlabs/dapos/proto"
 	"github.com/processout/grpc-go-pool"
 	"google.golang.org/grpc"
@@ -139,6 +139,52 @@ func sendGprcTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *g
 	return nil
 }
 
+func processDaposHTTP(method string, cfg *Config, endpoint string, body string) (*http.Response, string) {
+	var bodyString string
+	var resp *http.Response
+	var err error
+
+	err = errors.New("Invalid HTTP Method")
+
+	byt := []byte(body)
+	buffer := new(bytes.Buffer)
+	buffer.Write(byt)
+
+	url := "http://" + cfg.DelegateIP + ":" + cfg.HTTPPort + endpoint
+	if method == "POST" {
+		resp, err = http.Post(url, "application/json", buffer)
+	}
+	if method == "GET" {
+		url := url + endpoint
+		resp, err = http.Get(url)
+	}
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		if bodyBytes != nil {
+			bodyString = string(bodyBytes)
+		}
+	}
+
+	return resp, bodyString
+
+}
+
+func getHTTPActionResult(id string, cfg *Config) (*http.Response, string) {
+
+	resp, body := processDaposHTTP("GET", cfg, "/v1/statuses/"+id, "")
+	if resp.StatusCode != http.StatusOK {
+		utils.Warn("Unable to get HTTP Action")
+	}
+	return resp, body
+}
+
 func sendHttpTransaction(tx *types.Transaction, cfg *Config, mtr *Meter) (http.Response, string) {
 
 	var bodyString string
@@ -188,23 +234,36 @@ func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 	}
 }
 
-func getHttpReceipt(id string) string {
+func getHttpReceipt(id string, cfg *Config) string {
 
 	var waiting bool
 	var action *types.Action
 	waiting = true
 
-	service := dapos.GetDAPoSService()
+	err := errors.New(types.StatusInternalError)
 
 	for waiting {
-		action = service.GetAction(id)
 
-		if action.Status == types.StatusPending {
-			time.Sleep(500 * time.Millisecond)
-		} else {
-			return action.Status
+		resp, body := getHTTPActionResult(id, cfg)
+		if resp.StatusCode != http.StatusOK {
+			utils.Warn("Error calling DAPOS")
+			return types.StatusInternalError
+		}
+		if len(body) > 0 {
+			action, err = types.ToActionFromJson([]byte(body))
+			if err != nil {
+				utils.Warn(err)
+				return types.StatusInternalError
+
+			}
+			if action.Status == types.StatusPending {
+				time.Sleep(500 * time.Millisecond)
+			} else {
+				return action.Status
+			}
 		}
 	}
+
 	return types.StatusInternalError
 }
 
@@ -219,7 +278,7 @@ func runHttp(cfg *Config, mtr *Meter, tx *types.Transaction, track bool) {
 		if err != nil {
 			utils.Warn(err)
 		}
-		status := getHttpReceipt(action.Id)
+		status := getHttpReceipt(action.Id, cfg)
 
 		if status != types.StatusOk {
 			utils.Warn("Transaction Failed or rejected")
@@ -273,6 +332,7 @@ func wait() {
 
 func fillWalletsFromGenisis(cfg *Config, mtr *Meter, wallets *[]types.Wallet, amount int64) {
 
+	utils.Info("Loading the wallets for testing...")
 	for i := 0; i < len(*wallets); i++ {
 
 		w := (*wallets)[i]
