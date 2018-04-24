@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 
 	"time"
 
+	"github.com/dispatchlabs/commons/crypto"
 	"github.com/dispatchlabs/commons/types"
 	"github.com/dispatchlabs/commons/utils"
 	"github.com/dispatchlabs/dapos/proto"
@@ -85,12 +87,12 @@ func createSampleTransaction(cfg *Config) *types.Transaction {
 	// TODO:  Make a wallet bucket ... many wallets and add coins
 	tx := types.NewTransaction(cfg.PrivateKey, 1,
 		cfg.From,
-		cfg.To, 1, time.Now())
+		cfg.To, 1, time.Now().UnixNano())
 
 	return tx
 }
 
-func sendGprcTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcpool.Pool) *types.Action {
+func sendGprcTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *grpcpool.Pool) *types.Receipt {
 
 	byt := []byte(tx.String())
 	buffer := new(bytes.Buffer)
@@ -117,7 +119,7 @@ func sendGprcTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *g
 		}
 	}
 
-	actionType := types.ActionNewTransaction
+	actionType := types.RequestNewTransaction
 	payLoad := tx.String()
 
 	//defer client.ClientConn.Close()
@@ -129,9 +131,9 @@ func sendGprcTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *g
 	if err != nil {
 		utils.Warn(err)
 	} else {
-		action, err := types.ToActionFromJson([]byte(response.Payload))
+		action, err := types.ToReceiptFromJson([]byte(response.Payload))
 		if err != nil {
-			return types.NewActionWithStatus(actionType, types.StatusInternalError, err.Error())
+			return types.NewReceiptWithStatus(actionType, types.StatusInternalError, err.Error())
 		}
 		return action
 	}
@@ -153,10 +155,11 @@ func processDaposHTTP(method string, cfg *Config, endpoint string, body string) 
 	url := "http://" + cfg.DelegateIP + ":" + cfg.HTTPPort + endpoint
 	if method == "POST" {
 		resp, err = http.Post(url, "application/json", buffer)
+		defer resp.Body.Close()
 	}
 	if method == "GET" {
-		url := url + endpoint
 		resp, err = http.Get(url)
+		defer resp.Body.Close()
 	}
 	if err != nil {
 		fmt.Println(err.Error())
@@ -176,7 +179,7 @@ func processDaposHTTP(method string, cfg *Config, endpoint string, body string) 
 
 }
 
-func getHTTPActionResult(id string, cfg *Config) (*http.Response, string) {
+func getHTTPReceiptResult(id string, cfg *Config) (*http.Response, string) {
 
 	resp, body := processDaposHTTP("GET", cfg, "/v1/statuses/"+id, "")
 	if resp.StatusCode != http.StatusOK {
@@ -189,6 +192,8 @@ func sendHttpTransaction(tx *types.Transaction, cfg *Config, mtr *Meter) (http.R
 
 	var bodyString string
 
+	//fmt.Println(tx.String())
+
 	byt := []byte(tx.String())
 	buffer := new(bytes.Buffer)
 	buffer.Write(byt)
@@ -198,6 +203,7 @@ func sendHttpTransaction(tx *types.Transaction, cfg *Config, mtr *Meter) (http.R
 	if err != nil {
 		fmt.Println(err.Error())
 	} else {
+		fmt.Println(buffer) //
 	}
 
 	defer resp.Body.Close()
@@ -237,20 +243,20 @@ func run(cfg *Config, mtr *Meter, pool *grpcpool.Pool) {
 func getHttpReceipt(id string, cfg *Config) string {
 
 	var waiting bool
-	var action *types.Action
+	var action *types.Receipt
 	waiting = true
 
 	err := errors.New(types.StatusInternalError)
 
 	for waiting {
 
-		resp, body := getHTTPActionResult(id, cfg)
+		resp, body := getHTTPReceiptResult(id, cfg)
 		if resp.StatusCode != http.StatusOK {
 			utils.Warn("Error calling DAPOS")
 			return types.StatusInternalError
 		}
 		if len(body) > 0 {
-			action, err = types.ToActionFromJson([]byte(body))
+			action, err = types.ToReceiptFromJson([]byte(body))
 			if err != nil {
 				utils.Warn(err)
 				return types.StatusInternalError
@@ -274,7 +280,7 @@ func runHttp(cfg *Config, mtr *Meter, tx *types.Transaction, track bool) {
 
 	if resp.StatusCode == 200 {
 
-		action, err := types.ToActionFromJson([]byte(body))
+		action, err := types.ToReceiptFromJson([]byte(body))
 		if err != nil {
 			utils.Warn(err)
 		}
@@ -330,7 +336,7 @@ func wait() {
 	<-cleanupDone
 }
 
-func fillWalletsFromGenisis(cfg *Config, mtr *Meter, wallets *[]types.Wallet, amount int64) {
+func fillWalletsFromGenisis(cfg *Config, mtr *Meter, wallets *[]types.Account, amount int64) {
 
 	utils.Info("Loading the wallets for testing...")
 	for i := 0; i < len(*wallets); i++ {
@@ -339,19 +345,30 @@ func fillWalletsFromGenisis(cfg *Config, mtr *Meter, wallets *[]types.Wallet, am
 
 		tx := types.NewTransaction(cfg.PrivateKey, 1,
 			cfg.From,
-			w.Address, amount, time.Now())
+			w.Address, amount, time.Now().UnixNano())
 
 		runHttp(cfg, mtr, tx, false)
 	}
 
 }
 
-func makeWallets(num int) *[]types.Wallet {
+func NewWallet() *types.Account {
+	wallet := &types.Account{}
+	var publicKey []byte
+	publicKey, privateKey := crypto.GenerateKeyPair()
+	wallet.PrivateKey = hex.EncodeToString(privateKey)
+	hash := crypto.NewHash(publicKey[1:])
+	wallet.Address = hex.EncodeToString(hash[12:])
+	wallet.Balance = 0
+	return wallet
+}
 
-	var wallets []types.Wallet
+func makeWallets(num int) *[]types.Account {
+
+	var wallets []types.Account
 
 	for i := 0; i < num; i++ {
-		w := types.NewWallet()
+		w := NewWallet()
 
 		wallets = append(wallets, *w)
 	}
