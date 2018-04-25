@@ -54,7 +54,7 @@ func main() {
 			SeedList:          []string{},
 			DaposDelegates:    []string{},
 			NodeId:            "",
-			ThisIp:            "",
+			NodeIp:            "",
 		},
 	)
 
@@ -83,7 +83,7 @@ func main() {
 			SeedList:          seedIPList,
 			DaposDelegates:    []string{},
 			NodeId:            "",
-			ThisIp:            "",
+			NodeIp:            "",
 		},
 	)
 
@@ -110,7 +110,7 @@ func main() {
 			SeedList:          seedIPList,
 			DaposDelegates:    []string{},
 			NodeId:            "",
-			ThisIp:            "",
+			NodeIp:            "",
 		},
 	)
 }
@@ -183,7 +183,7 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 			}
 
 			disgoConfig.NodeId = vmName
-			disgoConfig.ThisIp = getVMIP(vmName)
+			disgoConfig.NodeIp = getVMIP(vmName)
 
 			// Save JSON config to a temp file then upload that file to the VM
 			var configFileName = randString(20) + ".json"
