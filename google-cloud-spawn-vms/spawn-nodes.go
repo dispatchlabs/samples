@@ -27,9 +27,9 @@ type VMsConfig struct {
 
 func main() {
 	var seedsCount = 1
-	var delegatesCount = 4
+	var delegatesCount = 1
 	var nodesCount = 0
-	var namePrefix = "test-net-1-1-alpha1"
+	var namePrefix = "greg-test-1-1"
 
 	// Create SEEDs
 	createVMs(
@@ -54,7 +54,7 @@ func main() {
 			SeedList:          []string{},
 			DaposDelegates:    []string{},
 			NodeId:            "",
-			ThisIp:            "",
+			NodeIp:            "",
 		},
 	)
 
@@ -83,7 +83,7 @@ func main() {
 			SeedList:          seedIPList,
 			DaposDelegates:    []string{},
 			NodeId:            "",
-			ThisIp:            "",
+			NodeIp:            "",
 		},
 	)
 
@@ -110,7 +110,7 @@ func main() {
 			SeedList:          seedIPList,
 			DaposDelegates:    []string{},
 			NodeId:            "",
-			ThisIp:            "",
+			NodeIp:            "",
 		},
 	)
 }
@@ -120,7 +120,7 @@ func getOSC() string {
 
 	osc := "sh"
 	if runtime.GOOS == "windows" {
-		osc = "cmd"
+		osc = "\\Windows\\System32\\cmd.exe"
 	}
 
 	return osc
@@ -134,6 +134,14 @@ func getOSE() string {
 		ose = "/c"
 	}
 	return ose
+}
+
+func getOSQuote() string {
+	osq := "'"
+	if runtime.GOOS == "windows" {
+		osq = "\""
+	}
+	return osq
 }
 
 func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
@@ -155,7 +163,7 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 
 		// Command to DOWNLOAD BASH scripts to the newly created VM
 		var downloadScriptFiles = fmt.Sprintf(
-			"gcloud compute ssh %s --command 'curl %s/%s -o %s'",
+			"gcloud compute ssh %s --command \"curl %s/%s -o %s\"",
 			vmName,
 			vmsConfig.ScriptConfigURL,
 			vmsConfig.ScriptConfigFile,
@@ -164,7 +172,7 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 
 		// Commands to RUN scripts
 		var execScript = fmt.Sprintf(
-			"gcloud compute ssh %s --command 'bash %s'",
+			"gcloud compute ssh %s --command \"bash %s\"",
 			vmName,
 			vmsConfig.ScriptConfigFile,
 		)
@@ -179,11 +187,16 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 
 			for _, cmd := range cmds {
 				fmt.Println(cmd)
-				exec.Command(osc, ose, cmd).Run()
+				c := exec.Command(osc, ose, cmd)
+				out, err := c.CombinedOutput()
+				if err != nil {
+					fmt.Println(err)
+					fmt.Println(out)
+				}
 			}
 
 			disgoConfig.NodeId = vmName
-			disgoConfig.ThisIp = getVMIP(vmName)
+			disgoConfig.NodeIp = getVMIP(vmName)
 
 			// Save JSON config to a temp file then upload that file to the VM
 			var configFileName = randString(20) + ".json"
@@ -197,8 +210,8 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 					var fullFileName, _ = filepath.Abs(configFileName)
 
 					exec.Command(osc, ose, fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)).Run()
-					exec.Command(osc, ose, fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)).Run()
-					exec.Command(osc, ose, fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)).Run()
+					exec.Command(osc, ose, fmt.Sprintf("gcloud compute ssh %s --command \"sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries\"", vmName)).Run()
+					exec.Command(osc, ose, fmt.Sprintf("gcloud compute ssh %s --command \"sudo sudo systemctl restart dispatch-disgo-node\"", vmName)).Run()
 
 					os.Remove(configFileName)
 				}
