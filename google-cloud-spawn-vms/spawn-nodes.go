@@ -23,13 +23,14 @@ type VMsConfig struct {
 	NamePrefix       string
 	ScriptConfigURL  string
 	ScriptConfigFile string
+	CodeBranch       string
 }
 
 func main() {
 	var seedsCount = 1
-	var delegatesCount = 4
-	var nodesCount = 0
-	var namePrefix = "test-net-1-1-alpha1"
+	var delegatesCount = 2
+	var nodesCount = 2
+	var namePrefix = "test-net-1-1-dg-364"
 
 	// Create SEEDs
 	createVMs(
@@ -40,8 +41,9 @@ func main() {
 			MachineType:      "f1-micro",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-seed",
-			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms",
+			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
+			CodeBranch:       "dev",
 		},
 		types.Config{
 			HttpPort:          1975,
@@ -69,8 +71,9 @@ func main() {
 			MachineType:      "f1-micro",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-delegate",
-			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms",
+			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
+			CodeBranch:       "dev",
 		},
 		types.Config{
 			HttpPort:          1975,
@@ -96,8 +99,9 @@ func main() {
 			MachineType:      "f1-micro",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-node",
-			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms",
+			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
+			CodeBranch:       "dev",
 		},
 		types.Config{
 			HttpPort:          1975,
@@ -164,9 +168,10 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 
 		// Commands to RUN scripts
 		var execScript = fmt.Sprintf(
-			"gcloud compute ssh %s --command 'bash %s'",
+			"gcloud compute ssh %s --command 'bash %s %s'",
 			vmName,
 			vmsConfig.ScriptConfigFile,
+			vmsConfig.CodeBranch,
 		)
 
 		// RUN VM creation in PARALLEL

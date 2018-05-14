@@ -14,8 +14,28 @@ echo 'export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin' >> ~/.bashrc
 GOPATH=$HOME/go
 PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
+# Fetch DisGo
+mkdir -p $GOPATH/src/github.com/dispatchlabs
+cd $GOPATH/src/github.com/dispatchlabs
+git clone -b $1 https://github.com/dispatchlabs/commons.git
+git clone -b $1 https://github.com/dispatchlabs/dapos.git
+git clone -b $1 https://github.com/dispatchlabs/disgover.git
+git clone -b $1 https://github.com/dispatchlabs/disgo.git
+
+# Pull Dependencies
+cd commons
+go get ./...
+
+cd ../dapos
+go get ./...
+
+cd ../disgover
+go get ./...
+
+cd ../disgo
+go get ./...
+
 # Compile DisGo
-go get github.com/dispatchlabs/disgo
 cd $GOPATH/src/github.com/dispatchlabs/disgo
 go build
 
