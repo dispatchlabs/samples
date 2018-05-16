@@ -1,20 +1,16 @@
+
+set DispatchFolder=~/go/src/github.com/dispatchlabs
 set Branch=dev
 
-rem Fetch
-git clone -b %Branch% https://github.com/dispatchlabs/commons.git
-git clone -b %Branch% https://github.com/dispatchlabs/dapos.git
-git clone -b %Branch% https://github.com/dispatchlabs/disgover.git
-git clone -b %Branch% https://github.com/dispatchlabs/disgo.git
+mkdir -p $DispatchFolder
+cd $DispatchFolder
 
-rem Pull Dependencies
-cd commons
-go get ./...
+git clone -b $Branch https://github.com/dispatchlabs/commons.git
+git clone -b $Branch https://github.com/dispatchlabs/dvm.git
+git clone -b $Branch https://github.com/dispatchlabs/disgover.git
+git clone -b $Branch https://github.com/dispatchlabs/dapos.git
+git clone -b $Branch https://github.com/dispatchlabs/disgo.git
 
-cd ../dapos
+cd disgo
 go get ./...
-
-cd ../disgover
-go get ./...
-
-cd ../disgo
-go get ./...
+go build
