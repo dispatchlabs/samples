@@ -85,10 +85,15 @@ func buildGRPCConnectionPool(connections int) *grpcpool.Pool {
 func createSampleTransaction(cfg *Config) *types.Transaction {
 
 	// TODO:  Make a wallet bucket ... many wallets and add coins
-	tx := types.NewTransaction(cfg.PrivateKey, 1,
+	tx, err := types.NewTransaction(cfg.PrivateKey, types.TransactionTypeSetName,
 		cfg.From,
-		cfg.To, 1, time.Now().UnixNano())
+		cfg.To, 1, 0, time.Now().UnixNano())
 
+	if err != nil {
+		panic ("Unable to create new transaction")
+	}
+
+	//func NewTransaction(privateKey string, tipe byte, from, to string, value, hertz, theTime int64)
 	return tx
 }
 
@@ -127,7 +132,7 @@ func sendGprcTransaction(tx *types.Transaction, cfg *Config, mtr *Meter, pool *g
 	p := proto.NewDAPoSGrpcClient(client.ClientConn)
 	contextWithTimeout, cancel := context.WithTimeout(context.Background(), 2000*time.Millisecond)
 	defer cancel()
-	response, err := p.Execute(contextWithTimeout, &proto.Request{Action: actionType, Payload: payLoad})
+	response, err := p.ExecuteGrpc(contextWithTimeout, &proto.Request{Type: actionType, Payload: payLoad})
 	if err != nil {
 		utils.Warn(err)
 	} else {
@@ -343,10 +348,13 @@ func fillWalletsFromGenisis(cfg *Config, mtr *Meter, wallets *[]types.Account, a
 
 		w := (*wallets)[i]
 
-		tx := types.NewTransaction(cfg.PrivateKey, 1,
+		tx, err := types.NewTransaction(cfg.PrivateKey, 1,
 			cfg.From,
-			w.Address, amount, time.Now().UnixNano())
+			w.Address, amount, 1000, time.Now().UnixNano())
 
+		if err != nil {
+			panic ("Unable to create wallet in genisis chain")
+		}
 		runHttp(cfg, mtr, tx, false)
 	}
 
