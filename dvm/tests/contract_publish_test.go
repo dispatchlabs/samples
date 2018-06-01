@@ -1,5 +1,6 @@
 package tests
 
+/*
 import (
 	"fmt"
 	"testing"
@@ -101,3 +102,5 @@ func test1_AllServicesInitFinished() {
 // 	utils.Info("RESP-Headers: ", resp.Header)
 // 	utils.Info("RESP-Body   : ", string(responseAsBytes))
 // }
+
+*/

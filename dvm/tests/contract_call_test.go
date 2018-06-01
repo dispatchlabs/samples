@@ -1,5 +1,6 @@
 package tests
 
+/*
 import (
 	"encoding/hex"
 	"fmt"
@@ -111,3 +112,4 @@ func test2_AllServicesInitFinished() {
 	}
 	dapos.GetDAPoSService().Temp_ProcessTransaction(fakeGossip)
 }
+*/
