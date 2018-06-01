@@ -1,0 +1,13 @@
+{
+	"Creation": {
+		"codeDepositCost": "185800",
+		"executionCost": "infinite",
+		"totalCost": "infinite"
+	},
+	"External": {
+		"getVar5()": "infinite",
+		"incVar6Var1()": "infinite",
+		"setVar5(string)": "infinite",
+		"setVar6Var4(string)": "infinite"
+	}
+}
