@@ -46,10 +46,14 @@ func allServicesInitFinished() {
 
 	deployContract()
 
-	// go func() {
-	// 	// time.Sleep(10 * time.Second)
-	// 	executeMethod_setVar5()
-	// }()
+	go func() {
+		time.Sleep(5 * time.Second)
+		executeMethod_setVar5()
+		go func() {
+			time.Sleep(5 * time.Second)
+			executeMethod_getVar5()
+		}()
+	}()
 }
 
 func deployContract() {
@@ -168,6 +172,100 @@ func executeMethod_setVar5() {
 		Type:                "fake2",
 		Status:              "fake2",
 		HumanReadableStatus: "fake2",
+	}
+	services.GetCache().Set(fakeReceipt.Id, fakeReceipt, types.ReceiptCacheTTL)
+
+	var fakeGossip = &types.Gossip{
+		ReceiptId:   fakeReceipt.Id,
+		Transaction: *tx,
+	}
+	dapos.GetDAPoSService().Temp_ProcessTransaction(fakeGossip)
+}
+
+func executeMethod_getVar5() {
+	// Taken from Genesis
+	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
+	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
+	var to = "c3be1a3a5c6134cca51896fadf032c4c61bc355e" // "c3be1a3a5c6134cca51896fadf032c4c61bc355e"
+	var abi = `[
+		{
+			"constant": true,
+			"inputs": [],
+			"name": "getVar5",
+			"outputs": [
+				{
+					"name": "",
+					"type": "string"
+				}
+			],
+			"payable": false,
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"constant": false,
+			"inputs": [
+				{
+					"name": "value",
+					"type": "string"
+				}
+			],
+			"name": "setVar6Var4",
+			"outputs": [],
+			"payable": false,
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"constant": false,
+			"inputs": [],
+			"name": "incVar6Var1",
+			"outputs": [],
+			"payable": false,
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"constant": false,
+			"inputs": [
+				{
+					"name": "value",
+					"type": "string"
+				}
+			],
+			"name": "setVar5",
+			"outputs": [],
+			"payable": false,
+			"stateMutability": "nonpayable",
+			"type": "function"
+		},
+		{
+			"inputs": [],
+			"payable": false,
+			"stateMutability": "nonpayable",
+			"type": "constructor"
+		}
+	]`
+
+	var theTime = utils.ToMilliSeconds(time.Now())
+	var method = "getVar5"
+	var params = make([]interface{}, 0)
+
+	var tx, _ = types.NewContractCallTransaction(
+		privateKey,
+		from,
+		to,
+		hex.EncodeToString([]byte(abi)),
+		method,
+		params,
+		theTime,
+	)
+
+	var fakeReceipt = &types.Receipt{
+		Id:                  "fake3",
+		Type:                "fake3",
+		Status:              "fake3",
+		HumanReadableStatus: "fake3",
 	}
 	services.GetCache().Set(fakeReceipt.Id, fakeReceipt, types.ReceiptCacheTTL)
 
