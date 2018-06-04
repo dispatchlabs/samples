@@ -44,19 +44,19 @@ func allServicesInitFinished() {
 		return
 	}
 
-	const timeout = 5
-	go func() {
-		time.Sleep(timeout * time.Second)
-		deployContract()
-		// go func() {
-		// 	time.Sleep(timeout * time.Second)
-		// 	executeMethod_setVar5()
-		// 	go func() {
-		// 		time.Sleep(timeout * time.Second)
-		// 		executeMethod_getVar5()
-		// 	}()
-		// }()
-	}()
+	const timeout = 10
+	// go func() {
+	// time.Sleep(timeout * time.Second)
+	// deployContract()
+	// go func() {
+	// 	time.Sleep(timeout * time.Second)
+	// 	executeMethod_setVar5()
+	// 	go func() {
+	// 		time.Sleep(timeout * time.Second)
+	// 		executeMethod_getVar5()
+	// 	}()
+	// }()
+	// }()
 }
 
 func deployContract() {
