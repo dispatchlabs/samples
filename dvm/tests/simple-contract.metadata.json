@@ -34,6 +34,46 @@
 				"type": "function"
 			},
 			{
+				"constant": true,
+				"inputs": [],
+				"name": "var6",
+				"outputs": [
+					{
+						"name": "var1",
+						"type": "uint256"
+					},
+					{
+						"name": "var2",
+						"type": "bool"
+					},
+					{
+						"name": "var3",
+						"type": "uint8"
+					},
+					{
+						"name": "var4",
+						"type": "string"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
+				"constant": true,
+				"inputs": [],
+				"name": "var5",
+				"outputs": [
+					{
+						"name": "",
+						"type": "string"
+					}
+				],
+				"payable": false,
+				"stateMutability": "view",
+				"type": "function"
+			},
+			{
 				"constant": false,
 				"inputs": [],
 				"name": "incVar6Var1",
@@ -72,7 +112,7 @@
 	},
 	"settings": {
 		"compilationTarget": {
-			"simple-contract.sol": "TestContract"
+			"browser/Untitled.sol": "TestContract"
 		},
 		"evmVersion": "byzantium",
 		"libraries": {},
@@ -83,10 +123,10 @@
 		"remappings": []
 	},
 	"sources": {
-		"browser/ballot.sol": {
-			"keccak256": "0x7b46d7be0c8fc6dd619048a6b6a2328549309c84e7ee8d709e9ab8b80c3506db",
+		"browser/Untitled.sol": {
+			"keccak256": "0x170f7d5508cb0501b9f7244ce594377e16b10268a8b6d88eb9a161a1d7088766",
 			"urls": [
-				"bzzr://467a78556c2c644db7bb6e4990ba399d3153f65f5db67d62b882e147b4676270"
+				"bzzr://266405d2ddba281df9ce2257a1dd996ceaba8c369568a16b1426881544f33923"
 			]
 		}
 	},

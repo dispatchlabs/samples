@@ -28,6 +28,46 @@
 		"type": "function"
 	},
 	{
+		"constant": true,
+		"inputs": [],
+		"name": "var6",
+		"outputs": [
+			{
+				"name": "var1",
+				"type": "uint256"
+			},
+			{
+				"name": "var2",
+				"type": "bool"
+			},
+			{
+				"name": "var3",
+				"type": "uint8"
+			},
+			{
+				"name": "var4",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "var5",
+		"outputs": [
+			{
+				"name": "",
+				"type": "string"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
 		"constant": false,
 		"inputs": [],
 		"name": "incVar6Var1",

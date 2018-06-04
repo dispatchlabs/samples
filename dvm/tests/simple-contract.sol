@@ -7,9 +7,9 @@ contract TestContract {
         uint8 var3;
         string var4;
     }
-    
-    string var5;
-    ComplexStruct var6;
+
+    string public var5;
+    ComplexStruct public var6;
 
     constructor() public {
         var5 = "aaaaaaaaaaaaa";
