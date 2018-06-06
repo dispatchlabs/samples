@@ -44,7 +44,7 @@ func allServicesInitFinished() {
 		return
 	}
 
-	const timeout = 2
+	const timeout = 3
 
 	// go func() {
 	// 	time.Sleep(timeout * time.Second)
