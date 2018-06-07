@@ -46,20 +46,20 @@ func allServicesInitFinished() {
 
 	const timeout = 3
 
-	// go func() {
-	// 	time.Sleep(timeout * time.Second)
-	// 	deployContract()
-	// }()
+	go func() {
+		time.Sleep(timeout * time.Second)
+		deployContract()
+	}()
 
 	// go func() {
 	// 	time.Sleep(timeout * time.Second)
 	// 	executeMethod_setVar5()
 	// }()
 
-	go func() {
-		time.Sleep(timeout * time.Second)
-		executeMethod_getVar5()
-	}()
+	// go func() {
+	// 	time.Sleep(timeout * time.Second)
+	// 	executeMethod_getVar5()
+	// }()
 }
 
 func deployContract() {
