@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/dispatchlabs/commons/types"
+	"github.com/dispatchlabs/disgo/commons/types"
 )
 
 // VMsConfig - config for a VM in Google Cloud
@@ -30,7 +30,7 @@ func main() {
 	var seedsCount = 1
 	var delegatesCount = 2
 	var nodesCount = 2
-	var namePrefix = "test-net-1-1-dg-364"
+	var namePrefix = "test-net-1-1-dg-484"
 
 	// Create SEEDs
 	createVMs(
@@ -46,21 +46,17 @@ func main() {
 			CodeBranch:       "dev",
 		},
 		types.Config{
-			HttpPort:          1975,
-			HttpHostIp:        "0.0.0.0",
-			GrpcPort:          1973,
+			HttpEndpoint:      &types.Endpoint{"0.0.0.0", 1975},
+			GrpcEndpoint:      &types.Endpoint{"0.0.0.0", 1973},
 			GrpcTimeout:       5,
 			UseQuantumEntropy: false,
-			IsSeed:            true,
-			IsDelegate:        false,
-			SeedList:          []string{},
-			DaposDelegates:    []string{},
-			NodeId:            "",
-			NodeIp:            "",
+			SeedEndpoints:     nil,
+			DelegateEndpoints: nil,
+			GenesisTransaction: "",
 		},
 	)
 
-	var seedIPList = getSeedIPs(seedsCount, namePrefix+"-seed")
+	var seedEndpoints = getSeedEndpoints(seedsCount, namePrefix+"-seed")
 
 	// Create DELEGATEs
 	createVMs(
@@ -76,17 +72,13 @@ func main() {
 			CodeBranch:       "dev",
 		},
 		types.Config{
-			HttpPort:          1975,
-			HttpHostIp:        "0.0.0.0",
-			GrpcPort:          1973,
+			HttpEndpoint:      &types.Endpoint{"0.0.0.0", 1975},
+			GrpcEndpoint:      &types.Endpoint{"0.0.0.0", 1973},
 			GrpcTimeout:       5,
 			UseQuantumEntropy: false,
-			IsSeed:            false,
-			IsDelegate:        true,
-			SeedList:          seedIPList,
-			DaposDelegates:    []string{},
-			NodeId:            "",
-			NodeIp:            "",
+			SeedEndpoints:     seedEndpoints,
+			DelegateEndpoints: []*types.Endpoint{},
+			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
 
@@ -104,17 +96,13 @@ func main() {
 			CodeBranch:       "dev",
 		},
 		types.Config{
-			HttpPort:          1975,
-			HttpHostIp:        "0.0.0.0",
-			GrpcPort:          1973,
+			HttpEndpoint:      &types.Endpoint{"0.0.0.0", 1975},
+			GrpcEndpoint:      &types.Endpoint{"0.0.0.0", 1973},
 			GrpcTimeout:       5,
 			UseQuantumEntropy: false,
-			IsSeed:            false,
-			IsDelegate:        false,
-			SeedList:          seedIPList,
-			DaposDelegates:    []string{},
-			NodeId:            "",
-			NodeIp:            "",
+			SeedEndpoints:     seedEndpoints,
+			DelegateEndpoints: []*types.Endpoint{},
+			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
 }
@@ -187,8 +175,8 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 				exec.Command(osc, ose, cmd).Run()
 			}
 
-			disgoConfig.NodeId = vmName
-			disgoConfig.NodeIp = getVMIP(vmName)
+			//disgoConfig.NodeId = vmName
+			//disgoConfig.NodeIp = getVMIP(vmName)
 
 			// Save JSON config to a temp file then upload that file to the VM
 			var configFileName = randString(20) + ".json"
@@ -231,19 +219,18 @@ func getVMIP(vmName string) string {
 	return ""
 }
 
-func getSeedIPs(seedsCount int, namePrefix string) []string {
-	var seedIPList = []string{}
+func getSeedEndpoints(seedsCount int, namePrefix string) []*types.Endpoint {
+	var seedList = []*types.Endpoint{}
 
 	for i := 0; i < seedsCount; i++ {
 		var vmName = fmt.Sprintf("%s-%d", namePrefix, i)
 
 		var ip = getVMIP(vmName)
 		if ip != "" {
-			seedIPList = append(seedIPList, ip)
+			seedList = append(seedList, &types.Endpoint{ip, 1973})
 		}
 	}
-
-	return seedIPList
+	return seedList
 }
 
 func randString(n int) string {
