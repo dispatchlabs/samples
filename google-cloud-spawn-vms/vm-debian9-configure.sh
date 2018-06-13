@@ -48,4 +48,4 @@ echo '[Install]'						| sudo tee --append /etc/systemd/system/dispatch-disgo-nod
 echo 'WantedBy=multi-user.target'		| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
 
 sudo systemctl enable dispatch-disgo-node
-#sudo systemctl start dispatch-disgo-node
+sudo systemctl start dispatch-disgo-node
