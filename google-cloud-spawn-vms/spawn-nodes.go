@@ -30,7 +30,7 @@ func main() {
 	var seedsCount = 1
 	var delegatesCount = 2
 	var nodesCount = 2
-	var namePrefix = "test-net-1-1-dg-484"
+	var namePrefix = "test-nicolae-debug"
 
 	// Create SEEDs
 	createVMs(
@@ -46,13 +46,13 @@ func main() {
 			CodeBranch:       "DG-484",
 		},
 		types.Config{
-			HttpEndpoint:      &types.Endpoint{"0.0.0.0", 1975},
-			GrpcEndpoint:      &types.Endpoint{"0.0.0.0", 1973},
-			GrpcTimeout:       5,
-			UseQuantumEntropy: false,
-			SeedEndpoints:     nil,
-			DelegateEndpoints: nil,
-			GenesisTransaction: "",
+			HttpEndpoint:       &types.Endpoint{"0.0.0.0", 1975},
+			GrpcEndpoint:       &types.Endpoint{"0.0.0.0", 1973},
+			GrpcTimeout:        5,
+			UseQuantumEntropy:  false,
+			SeedEndpoints:      []*types.Endpoint{},
+			DelegateEndpoints:  []*types.Endpoint{},
+			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
 
@@ -72,12 +72,12 @@ func main() {
 			CodeBranch:       "DG-484",
 		},
 		types.Config{
-			HttpEndpoint:      &types.Endpoint{"0.0.0.0", 1975},
-			GrpcEndpoint:      &types.Endpoint{"0.0.0.0", 1973},
-			GrpcTimeout:       5,
-			UseQuantumEntropy: false,
-			SeedEndpoints:     seedEndpoints,
-			DelegateEndpoints: []*types.Endpoint{},
+			HttpEndpoint:       &types.Endpoint{"0.0.0.0", 1975},
+			GrpcEndpoint:       &types.Endpoint{"0.0.0.0", 1973},
+			GrpcTimeout:        5,
+			UseQuantumEntropy:  false,
+			SeedEndpoints:      seedEndpoints,
+			DelegateEndpoints:  []*types.Endpoint{},
 			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
@@ -100,12 +100,12 @@ func main() {
 			CodeBranch:       "DG-484",
 		},
 		types.Config{
-			HttpEndpoint:      &types.Endpoint{"0.0.0.0", 1975},
-			GrpcEndpoint:      &types.Endpoint{"0.0.0.0", 1973},
-			GrpcTimeout:       5,
-			UseQuantumEntropy: false,
-			SeedEndpoints:     seedEndpoints,
-			DelegateEndpoints: delegateEndpoints,
+			HttpEndpoint:       &types.Endpoint{"0.0.0.0", 1975},
+			GrpcEndpoint:       &types.Endpoint{"0.0.0.0", 1973},
+			GrpcTimeout:        5,
+			UseQuantumEntropy:  false,
+			SeedEndpoints:      seedEndpoints,
+			DelegateEndpoints:  delegateEndpoints,
 			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
