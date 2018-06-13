@@ -1,8 +1,11 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net"
+
+	"github.com/dispatchlabs/disgo/commons/utils"
 	"github.com/dispatchlabs/samples/blockchain-grpc/proto"
 	"github.com/dispatchlabs/samples/blockchain-grpc/server/blockchain"
 	"golang.org/x/net/context"
@@ -10,14 +13,15 @@ import (
 )
 
 func Start() {
-	log.Println("Starting Server")
+	utils.Info("Starting Server")
+
 	listener, err := net.Listen("tcp", ":8080")
 	if err != nil {
-		log.Fatalf("unable to listen port 8080: %v", err)
+		utils.Fatal(fmt.Sprintf("unable to listen port 8080: %v", err))
 	}
 
 	srv := grpc.NewServer()
-	proto.RegisterBlockchainServer(srv, &Server {
+	proto.RegisterBlockchainServer(srv, &Server{
 		Blockchain: blockchain.NewBlockchain(),
 	})
 	srv.Serve(listener)
@@ -39,15 +43,15 @@ func (s *Server) AddBlock(ctx context.Context, in *proto.AddBlockRequest) (*prot
 
 // GetBlockchain : returns blockchain
 func (s *Server) GetBlockchain(ctx context.Context, in *proto.GetBlockchainRequest) (*proto.GetBlockchainResponse, error) {
-		log.Print("Get full block chain")
-		resp := new(proto.GetBlockchainResponse)
-		for _, b := range s.Blockchain.Blocks {
-			resp.Blocks = append(resp.Blocks, &proto.Block{
-				PrevBlockHash: b.PrevBlockHash,
-				Data:          b.Data,
-				Hash:          b.Hash,
-				Timestamp:     b.Timestamp,
-			})
+	log.Print("Get full block chain")
+	resp := new(proto.GetBlockchainResponse)
+	for _, b := range s.Blockchain.Blocks {
+		resp.Blocks = append(resp.Blocks, &proto.Block{
+			PrevBlockHash: b.PrevBlockHash,
+			Data:          b.Data,
+			Hash:          b.Hash,
+			Timestamp:     b.Timestamp,
+		})
 	}
 	return resp, nil
 }

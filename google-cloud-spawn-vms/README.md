@@ -20,6 +20,6 @@
 - `gcloud compute scp my-instance:~/file-1 ~/local-destination --zone us-central1-a`
 - `gcloud compute instances create --help`
 - `gcloud compute images list | grep debian`
-- `gcloud compute machine-types list | grep us-west1-a`
+- `gcloud compute machine-types list | grep us-west1-b`
 - Creating an instance from an image
 	- `gcloud compute instances create testvm-from-gcli --image-family debian-9 --image-project debian-cloud --machine-type f1-micro`
