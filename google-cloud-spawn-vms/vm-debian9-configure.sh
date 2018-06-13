@@ -20,7 +20,7 @@ cd $GOPATH/src/github.com/dispatchlabs
 git clone -b $1 https://github.com/dispatchlabs/disgo.git
 
 # Pull Dependencies
-cd ../disgo
+cd disgo
 go get ./...
 
 # Compile DisGo
