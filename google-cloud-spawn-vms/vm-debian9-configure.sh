@@ -14,8 +14,16 @@ echo 'export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin' >> ~/.bashrc
 GOPATH=$HOME/go
 PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 
+# Fetch DisGo
+mkdir -p $GOPATH/src/github.com/dispatchlabs
+cd $GOPATH/src/github.com/dispatchlabs
+git clone -b $1 https://github.com/dispatchlabs/disgo.git
+
+# Pull Dependencies
+cd disgo
+go get ./...
+
 # Compile DisGo
-go get github.com/dispatchlabs/disgo
 cd $GOPATH/src/github.com/dispatchlabs/disgo
 go build
 
@@ -40,4 +48,4 @@ echo '[Install]'						| sudo tee --append /etc/systemd/system/dispatch-disgo-nod
 echo 'WantedBy=multi-user.target'		| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
 
 sudo systemctl enable dispatch-disgo-node
-#sudo systemctl start dispatch-disgo-node
+sudo systemctl start dispatch-disgo-node
