@@ -13,8 +13,6 @@
 - If the GoPATH was directed to somewhere else, you can edit it through the "Environment Variables" button on the "Advaced System Settings" option inside the "System" control panel.
 
 
-
-
 ##### Debian / Ubunbu
 - `sudo apt-get update`
 - `sudo apt-get upgrade`
@@ -27,8 +25,10 @@
 
 ##### Mac
 - `curl -O https://dl.google.com/go/go1.9.4.darwin-amd64.pkg`
-- Execute `sudo installer -pkg /your/path/go1.9.4.darwin-amd64.pkg -target /` then next/next/finish (you can find the path using the pwd command)
-- __OR__
+- Execute `sudo installer -pkg /your/path/go1.9.4.darwin-amd64.pkg -target /` 
+then follow the promtp (you can find the path using the pwd command)
+ 
+ __OR__
 - `brew install go`
 
 
