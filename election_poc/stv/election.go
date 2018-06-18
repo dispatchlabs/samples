@@ -3,17 +3,17 @@ package stv
 import (
 	"fmt"
 	"sort"
-	"github.com/gin-gonic/gin/json"
+	"encoding/json"
 )
 
 type Election struct {
-	NbrVacancies	int64				`json:"nbrVacancies,omitempty"`
-	Ballots			[]Ballot			`json:"-"`
-	Droop			float64				`json:"droop,omitempty"`
-	ElectionResults	*ElectionResults	`json:"electionResult,omitempty"`
-	Elected			[]Candidate			`json:"elected,omitempty"`
-	Hopefuls		[]Candidate			`json:"hopefuls,omitempty"`
-	Eliminated		[]Candidate			`json:"eliminated,omitempty"`
+	NbrVacancies		int64				`json:"nbrVacancies,omitempty"`
+	Ballots				[]Ballot			`json:"-"`
+	Droop				float64				`json:"droop,omitempty"`
+	ElectionResults		*ElectionResults	`json:"electionResult,omitempty"`
+	Elected				[]Candidate			`json:"elected,omitempty"`
+	Hopefuls			[]Candidate			`json:"hopefuls,omitempty"`
+	Eliminated			[]Candidate			`json:"eliminated,omitempty"`
 }
 
 func (this *Election) DoElection() {
@@ -26,22 +26,26 @@ func (this *Election) DoElection() {
 
 	fmt.Printf("Droop = %f\n", this.Droop)
 	counter := &map[string]float64{}
-	var results []ElectionResult
+	//var results []ElectionResult
 	var roundNbr int64
+
 	roundNbr = 1
 	for int64(len(this.ElectionResults.ElectionResults)) < this.NbrVacancies {
 		results := this.ExecuteRound(*counter, roundNbr)
-		this.ElectionResults.ElectionResults = append(this.ElectionResults.ElectionResults, results...)
+		this.ElectionResults.ElectionResults = append(this.ElectionResults.ElectionResults, results.ElectionResults...)
+		sort.Sort(sort.Reverse(results))
+
+		fmt.Printf(results.ToPrettyJson())
+		roundNbr++
 	}
-	electionResult := ElectionResults{results}
-	sort.Sort(sort.Reverse(electionResult))
-	fmt.Printf(electionResult.ToPrettyJson())
+	//electionResult := ElectionResults{results}
+	//sort.Sort(sort.Reverse(electionResult))
+	//fmt.Printf(electionResult.ToPrettyJson())
 
 }
 
-func (this *Election) ExecuteRound(counter map[string]float64, roundNumber int64) []ElectionResult {
+func (this *Election) ExecuteRound(counter map[string]float64, roundNumber int64) *ElectionResults {
 	for _, ballot := range this.Ballots {
-
 		for _, vote := range ballot.Votes {
 			if vote.Rank == roundNumber {
 				if !this.isElected(vote.Candidate.Name) {
@@ -65,7 +69,8 @@ func (this *Election) ExecuteRound(counter map[string]float64, roundNumber int64
 	electionResults := electionRound.CountRound(this.Droop, roundNumber)
 	//hopefuls := make([]Candidate, 0)
 	//elected = append(elected, result.Candidate)
-	for _, result := range electionResults {
+
+	for _, result := range electionResults.ElectionResults {
 		if result.ElectionRound == roundNumber {
 			var distributions []Distribution
 			counter, distributions = this.FractionalRedistributionWinner(&result, counter, roundNumber)
@@ -82,6 +87,11 @@ func (this *Election) ExecuteRound(counter map[string]float64, roundNumber int64
 	}
 	return electionResults
 }
+
+func (this *Election) ReconcileRound() {
+
+}
+
 /*
     allocated = {} # The allocation of ballots to candidates
     vote_count = {} # A hash of ballot counts, indexed by candidates

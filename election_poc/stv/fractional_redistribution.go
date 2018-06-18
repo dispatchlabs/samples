@@ -63,3 +63,23 @@ func (this *Election) isElected(candidateName string) bool {
 	}
 	return result
 }
+
+func (this *Election) isEliminated(candidateName string) bool {
+	result := false
+	for _, elected := range this.Eliminated {
+		if elected.Name == candidateName {
+			result = true
+		}
+	}
+	return result
+}
+
+func (this *Election) isHopeful(candidateName string) bool {
+	result := false
+	for _, elected := range this.Hopefuls {
+		if elected.Name == candidateName {
+			result = true
+		}
+	}
+	return result
+}

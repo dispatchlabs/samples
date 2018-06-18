@@ -1,7 +1,7 @@
 package stv
 
 import (
-	"github.com/gin-gonic/gin/json"
+	"encoding/json"
 )
 
 type ElectionRound struct {
@@ -47,14 +47,28 @@ func (this ElectionRound) ToPrettyJson() string {
 	return string(jsn)
 }
 
-func (this ElectionRound) CountRound(droop float64, roundNbr int64) []ElectionResult {
+func (this ElectionRound) CountRound(droop float64, roundNbr int64) *ElectionResults {
 	electedCandidates := make([]ElectionResult, 0)
 	elected := make([]Candidate, 0)
+	eliminated := make([]Candidate, 0)
+	minCount := droop
 	for _, vc := range this.VoteCount {
 		if vc.Count > droop {
 			electedCandidates = append(electedCandidates, ElectionResult{Candidate: vc.Candidate, TotalVotes: vc.Count, ElectionRound: roundNbr, Result: "Elected"})
 			elected = append(elected, vc.Candidate)
+		} else if vc.Count < minCount {
+			minCount = vc.Count
 		}
 	}
-	return electedCandidates
+	for _, vc := range this.VoteCount {
+		if vc.Count == minCount {
+			eliminated = append(eliminated, vc.Candidate)
+		}
+	}
+	results := &ElectionResults {
+		ElectionResults: electedCandidates,
+		Elected: elected,
+		Eliminated: eliminated,
+	}
+	return results
 }

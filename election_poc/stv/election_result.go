@@ -1,11 +1,13 @@
 package stv
 
 import (
-	"github.com/gin-gonic/gin/json"
+	"encoding/json"
 )
 
 type ElectionResults struct {
-	ElectionResults	[]ElectionResult	`json:"electionResults,omitempty"`
+	ElectionResults	[]ElectionResult 	`json:"electionResults,omitempty"`
+	Elected			[]Candidate			`json:"elected,omitempty"`
+	Eliminated		[]Candidate			`json:"eliminated,omitempty"`
 }
 
 type ElectionResult struct {
@@ -22,7 +24,7 @@ type Distribution struct {
 }
 
 func NewElectionResults() *ElectionResults {
-	return &ElectionResults{[]ElectionResult{}}
+	return &ElectionResults{[]ElectionResult{}, []Candidate{}, []Candidate{}}
 }
 
 func (this *ElectionResults) UpdateResults(result ElectionResult) {
@@ -32,30 +34,35 @@ func (this *ElectionResults) UpdateResults(result ElectionResult) {
 				rslt.TotalVotes = result.TotalVotes
 			}
 			if len(rslt.Distributions) < len(result.Distributions) {
-				rslt.Distributions = getUniqueDistributions(append(rslt.Distributions, result.Distributions...))
+				//rslt.Distributions = getUniqueDistributions(append(rslt.Distributions, result.Distributions...))
+				temp := append(rslt.Distributions, result.Distributions...)
+				if len(temp) > 0 {
+
+				}
+				//rslt.Distributions = util.Unique(collected)
 			}
 		}
 	}
 }
 
-func getUniqueDistributions(elements []Distribution) []Distribution {
-	// Use map to record duplicates as we find them.
-	encountered := map[string]bool{}
-	var result []Distribution
-
-	for _, v := range elements {
-		if encountered[v.Candidate.Name] == true {
-			// Do not add duplicate.
-		} else {
-			// Record this element as an encountered element.
-			encountered[v.Candidate.Name] = true
-			// Append to result slice.
-			result = append(result, v)
-		}
-	}
-	// Return the new slice.
-	return result
-}
+//func getUniqueDistributions(elements []Distribution) []Distribution {
+//	// Use map to record duplicates as we find them.
+//	encountered := map[string]bool{}
+//	var result []Distribution
+//
+//	for _, v := range elements {
+//		if encountered[v.Candidate.Name] == true {
+//			// Do not add duplicate.
+//		} else {
+//			// Record this element as an encountered element.
+//			encountered[v.Candidate.Name] = true
+//			// Append to result slice.
+//			result = append(result, v)
+//		}
+//	}
+//	// Return the new slice.
+//	return result
+//}
 
 // - Implementation of the sort interface
 

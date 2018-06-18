@@ -1,9 +1,9 @@
 package stv
 
 import (
-	"github.com/gin-gonic/gin/json"
 	"github.com/dispatchlabs/disgo/commons/utils"
 	"fmt"
+	"encoding/json"
 )
 
 type Ballot struct {
@@ -38,7 +38,17 @@ func (this Ballot) ToPrettyJson() string {
 Mock data for testing
  */
 
-func NewMockBallet(address string, candidates []Candidate) Ballot {
+func BuildMockBallots(candidates []Candidate, nbrOfBallots int) []Ballot {
+	ballots := make([]Ballot, 0)
+	for i := 0; i < nbrOfBallots; i++ {
+		addr := fmt.Sprintf("Voter-%d", i)
+		ballot := NewMockBallot(addr, candidates)
+		ballots = append(ballots, ballot)
+	}
+	return ballots;
+}
+
+func NewMockBallot(address string, candidates []Candidate) Ballot {
 	nbrCandidates := len(candidates)
 
 	votes := make([]Vote, 0)
