@@ -17,12 +17,12 @@ type Vote struct {
 	Rank		int64		`json:"rank,omitempty"`
 }
 
-func (this Ballot) ToJson() []byte {
+func (this Ballot) ToJson() string {
 	jsn, err := json.Marshal(this)
 	if err != nil {
 		panic(err)
 	}
-	return jsn
+	return string(jsn)
 
 }
 
@@ -43,7 +43,7 @@ func NewMockBallet(address string, candidates []Candidate) Ballot {
 
 	votes := make([]Vote, 0)
 	nbrVotes := utils.Random(1, nbrCandidates)
-	fmt.Printf("Nbr Votes = %d\n", nbrVotes)
+	fmt.Printf("Address: %-10v casting %d votes\n", address, nbrVotes)
 	encountered := map[string]bool{}
 
 	for i := 1; i <= nbrVotes; i++ {

@@ -13,19 +13,6 @@ type VoteCount struct {
 	Count 		float64		`json:"count,omitempty"`
 }
 
-type ElectionResult struct {
-	Candidate 		Candidate		`json:"candidate,omitempty"`
-	TotalVotes		float64			`json:"votes,omitempty"`
-	ElectionRound	int64			`json:"occuredInRound,omitempty"`
-	Result          string      	`json:"result,omitempty"`
-	Distributions	[]Distribution	`json:"distributions,omitempty"`
-}
-
-type Distribution struct {
-	Candidate 			Candidate	`json:"candidate,omitempty"`
-	DistributedVotes	float64		`json:"distributedValue,omitempty"`
-}
-
 // - Implementation of the sort interface
 
 // - Len is part of sort.Interface.

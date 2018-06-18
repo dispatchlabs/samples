@@ -1,5 +1,7 @@
 package stv
 
+import "fmt"
+
 func (this *Election) FractionalRedistributionWinner(candidate *ElectionResult, counter map[string]float64, roundNumber int64) (map[string]float64, []Distribution) {
 	distributions := make([]Distribution, 0)
 	//check if redistribution is necessary because of excess required votes
@@ -9,28 +11,30 @@ func (this *Election) FractionalRedistributionWinner(candidate *ElectionResult, 
 				nextCand := ballot.Votes[roundNumber].Candidate.Name
 				if(!this.isElected(nextCand)) {
 					addPartial := ( (float64(candidate.TotalVotes - this.Droop) / candidate.TotalVotes))
-					//fmt.Printf("\nAdding %v to candidate %s for voter %v\n", addPartial, nextCand, ballot.Address)
+					fmt.Printf("\nAdding %v to candidate %s for voter %v\n", addPartial, nextCand, ballot.Address)
 					counter[nextCand] = counter[nextCand] + addPartial
 					distributions = append(distributions, Distribution{Candidate{nextCand}, addPartial})
 				}
 			}
 		}
 	}
-	for k, v := range counter {
-		if(!this.isElected(k)) {
-			if(v > this.Droop) {
-				cand := Candidate{k}
-				this.Elected = append(this.Elected, cand)
-				newResult := ElectionResult{cand, v, roundNumber, "Elected", []Distribution{}}
-				_, distribution := this.FractionalRedistributionWinner(&newResult, counter, roundNumber)
-				newResult.Distributions = distribution
-				this.ElectionResults = append(this.ElectionResults, newResult)
-			} else {
-				//fmt.Printf("Next Candidates = %v with votes = %v\n", k, v)
-			}
-
-		}
-	}
+	candidate.Distributions = distributions
+	this.ElectionResults.UpdateResults(*candidate)
+	//for k, v := range counter {
+	//	if(!this.isElected(k)) {
+	//		if(v > this.Droop) {
+	//			cand := Candidate{k}
+	//			this.Elected = append(this.Elected, cand)
+	//			newResult := ElectionResult{cand, v, roundNumber, "Elected", []Distribution{}}
+	//			_, distribution := this.FractionalRedistributionWinner(&newResult, counter, roundNumber)
+	//			newResult.Distributions = distribution
+	//			this.ElectionResults.ElectionResults = append(this.ElectionResults.ElectionResults, newResult)
+	//		} else {
+	//			//fmt.Printf("Next Candidates = %v with votes = %v\n", k, v)
+	//		}
+	//
+	//	}
+	//}
 	return counter, distributions
 }
 

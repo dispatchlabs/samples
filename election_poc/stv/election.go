@@ -10,23 +10,36 @@ type Election struct {
 	NbrVacancies	int64				`json:"nbrVacancies,omitempty"`
 	Ballots			[]Ballot			`json:"-"`
 	Droop			float64				`json:"droop,omitempty"`
-	ElectionResults	[]ElectionResult	`json:"electionResult,omitempty"`
+	ElectionResults	*ElectionResults	`json:"electionResult,omitempty"`
 	Elected			[]Candidate			`json:"elected,omitempty"`
 	Hopefuls		[]Candidate			`json:"hopefuls,omitempty"`
 	Eliminated		[]Candidate			`json:"eliminated,omitempty"`
 }
 
 func (this *Election) DoElection() {
+	for _, ballot := range this.Ballots {
+		fmt.Printf("Ballot: %v\n", ballot.ToJson())
+	}
 	nbrBallots := float64(len(this.Ballots))
 	denom := float64(this.NbrVacancies + 1)
 	this.Droop =  float64(nbrBallots / denom) + 1
 
 	fmt.Printf("Droop = %f\n", this.Droop)
-	counter := this.ExecuteRound(map[string]float64{}, 1)
-	counter = this.ExecuteRound(counter, 2)
+	counter := &map[string]float64{}
+	var results []ElectionResult
+	var roundNbr int64
+	roundNbr = 1
+	for int64(len(this.ElectionResults.ElectionResults)) < this.NbrVacancies {
+		results := this.ExecuteRound(*counter, roundNbr)
+		this.ElectionResults.ElectionResults = append(this.ElectionResults.ElectionResults, results...)
+	}
+	electionResult := ElectionResults{results}
+	sort.Sort(sort.Reverse(electionResult))
+	fmt.Printf(electionResult.ToPrettyJson())
+
 }
 
-func (this *Election) ExecuteRound(counter map[string]float64, roundNumber int64) map[string]float64 {
+func (this *Election) ExecuteRound(counter map[string]float64, roundNumber int64) []ElectionResult {
 	for _, ballot := range this.Ballots {
 
 		for _, vote := range ballot.Votes {
@@ -49,10 +62,10 @@ func (this *Election) ExecuteRound(counter map[string]float64, roundNumber int64
 	electionRound := ElectionRound{VoteCount: voteCounts}
 	sort.Sort(sort.Reverse(electionRound))
 
-	this.ElectionResults = electionRound.CountRound(this.Droop, roundNumber)
+	electionResults := electionRound.CountRound(this.Droop, roundNumber)
 	//hopefuls := make([]Candidate, 0)
 	//elected = append(elected, result.Candidate)
-	for _, result := range this.ElectionResults {
+	for _, result := range electionResults {
 		if result.ElectionRound == roundNumber {
 			var distributions []Distribution
 			counter, distributions = this.FractionalRedistributionWinner(&result, counter, roundNumber)
@@ -67,7 +80,7 @@ func (this *Election) ExecuteRound(counter map[string]float64, roundNumber int64
 	for k, v := range counter {
 		fmt.Printf("\nCOUNT: %v :: %v", k, v)
 	}
-	return counter
+	return electionResults
 }
 /*
     allocated = {} # The allocation of ballots to candidates

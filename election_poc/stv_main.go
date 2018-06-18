@@ -26,7 +26,7 @@ func main() {
 		5,
 		ballots,
 		0.0,
-		[]stv.ElectionResult{},
+		stv.NewElectionResults(),
 		[]stv.Candidate{},
 		[]stv.Candidate{},
 		[]stv.Candidate{},
