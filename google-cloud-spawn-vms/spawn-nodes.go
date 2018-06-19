@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/dispatchlabs/commons/types"
+	"github.com/dispatchlabs/disgo/commons/types"
 )
 
 // VMsConfig - config for a VM in Google Cloud
@@ -23,13 +23,14 @@ type VMsConfig struct {
 	NamePrefix       string
 	ScriptConfigURL  string
 	ScriptConfigFile string
+	CodeBranch       string
 }
 
 func main() {
 	var seedsCount = 1
-	var delegatesCount = 4
-	var nodesCount = 0
-	var namePrefix = "test-net-1-1-alpha1"
+	var delegatesCount = 2
+	var nodesCount = 2
+	var namePrefix = "test-nicolae-debug"
 
 	// Create SEEDs
 	createVMs(
@@ -40,25 +41,22 @@ func main() {
 			MachineType:      "f1-micro",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-seed",
-			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms",
+			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
+			CodeBranch:       "master",
 		},
 		types.Config{
-			HttpPort:          1975,
-			HttpHostIp:        "0.0.0.0",
-			GrpcPort:          1973,
-			GrpcTimeout:       5,
-			UseQuantumEntropy: false,
-			IsSeed:            true,
-			IsDelegate:        false,
-			SeedList:          []string{},
-			DaposDelegates:    []string{},
-			NodeId:            "",
-			ThisIp:            "",
+			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
+			GrpcEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1973},
+			GrpcTimeout:        5,
+			UseQuantumEntropy:  false,
+			SeedEndpoints:      []*types.Endpoint{},
+			DelegateEndpoints:  []*types.Endpoint{},
+			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
 
-	var seedIPList = getSeedIPs(seedsCount, namePrefix+"-seed")
+	var seedEndpoints = getEndpoints(seedsCount, namePrefix+"-seed")
 
 	// Create DELEGATEs
 	createVMs(
@@ -69,23 +67,22 @@ func main() {
 			MachineType:      "f1-micro",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-delegate",
-			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms",
+			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
+			CodeBranch:       "master",
 		},
 		types.Config{
-			HttpPort:          1975,
-			HttpHostIp:        "0.0.0.0",
-			GrpcPort:          1973,
-			GrpcTimeout:       5,
-			UseQuantumEntropy: false,
-			IsSeed:            false,
-			IsDelegate:        true,
-			SeedList:          seedIPList,
-			DaposDelegates:    []string{},
-			NodeId:            "",
-			ThisIp:            "",
+			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
+			GrpcEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1973},
+			GrpcTimeout:        5,
+			UseQuantumEntropy:  false,
+			SeedEndpoints:      seedEndpoints,
+			DelegateEndpoints:  []*types.Endpoint{},
+			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
+
+	var delegateEndpoints = getEndpoints(delegatesCount, namePrefix+"-delegate")
 
 	// Create NODEs
 	createVMs(
@@ -96,21 +93,18 @@ func main() {
 			MachineType:      "f1-micro",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-node",
-			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/master/google-cloud-spawn-vms",
+			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
+			CodeBranch:       "master",
 		},
 		types.Config{
-			HttpPort:          1975,
-			HttpHostIp:        "0.0.0.0",
-			GrpcPort:          1973,
-			GrpcTimeout:       5,
-			UseQuantumEntropy: false,
-			IsSeed:            false,
-			IsDelegate:        false,
-			SeedList:          seedIPList,
-			DaposDelegates:    []string{},
-			NodeId:            "",
-			ThisIp:            "",
+			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
+			GrpcEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1973},
+			GrpcTimeout:        5,
+			UseQuantumEntropy:  false,
+			SeedEndpoints:      seedEndpoints,
+			DelegateEndpoints:  delegateEndpoints,
+			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
 }
@@ -164,9 +158,10 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 
 		// Commands to RUN scripts
 		var execScript = fmt.Sprintf(
-			"gcloud compute ssh %s --command 'bash %s'",
+			"gcloud compute ssh %s --command 'bash %s %s'",
 			vmName,
 			vmsConfig.ScriptConfigFile,
+			vmsConfig.CodeBranch,
 		)
 
 		// RUN VM creation in PARALLEL
@@ -182,8 +177,14 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 				exec.Command(osc, ose, cmd).Run()
 			}
 
-			disgoConfig.NodeId = vmName
-			disgoConfig.ThisIp = getVMIP(vmName)
+			disgoConfig.GrpcEndpoint.Host = getVMIP(vmName)
+			disgoConfig.DelegateEndpoints = append(
+				disgoConfig.DelegateEndpoints,
+				&types.Endpoint{
+					Host: disgoConfig.GrpcEndpoint.Host,
+					Port: disgoConfig.GrpcEndpoint.Port,
+				},
+			)
 
 			// Save JSON config to a temp file then upload that file to the VM
 			var configFileName = randString(20) + ".json"
@@ -226,19 +227,18 @@ func getVMIP(vmName string) string {
 	return ""
 }
 
-func getSeedIPs(seedsCount int, namePrefix string) []string {
-	var seedIPList = []string{}
+func getEndpoints(count int, namePrefix string) []*types.Endpoint {
+	var seedList = []*types.Endpoint{}
 
-	for i := 0; i < seedsCount; i++ {
+	for i := 0; i < count; i++ {
 		var vmName = fmt.Sprintf("%s-%d", namePrefix, i)
 
 		var ip = getVMIP(vmName)
 		if ip != "" {
-			seedIPList = append(seedIPList, ip)
+			seedList = append(seedList, &types.Endpoint{Host: ip, Port: 1973})
 		}
 	}
-
-	return seedIPList
+	return seedList
 }
 
 func randString(n int) string {

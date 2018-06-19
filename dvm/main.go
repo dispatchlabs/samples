@@ -4,8 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"github.com/dispatchlabs/dvm/test"
-	"C"
+
+	test "github.com/dispatchlabs/samples/dvm/test-project"
 )
 
 var (
@@ -16,7 +16,7 @@ var (
 	printLLVMIR = flag.Bool("llvm", false, "print LLVM generated code")
 )
 
-func main() {
+func main2() {
 	flag.Parse()
 	if *optimized {
 		test.Optimize()
