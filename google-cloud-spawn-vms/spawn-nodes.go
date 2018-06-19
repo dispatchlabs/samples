@@ -41,13 +41,13 @@ func main() {
 			MachineType:      "f1-micro",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-seed",
-			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/DG-484/google-cloud-spawn-vms",
+			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
-			CodeBranch:       "DG-484",
+			CodeBranch:       "master",
 		},
 		types.Config{
-			HttpEndpoint:       &types.Endpoint{"0.0.0.0", 1975},
-			GrpcEndpoint:       &types.Endpoint{"0.0.0.0", 1973},
+			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
+			GrpcEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1973},
 			GrpcTimeout:        5,
 			UseQuantumEntropy:  false,
 			SeedEndpoints:      []*types.Endpoint{},
@@ -67,13 +67,13 @@ func main() {
 			MachineType:      "f1-micro",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-delegate",
-			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/DG-484/google-cloud-spawn-vms",
+			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
-			CodeBranch:       "DG-484",
+			CodeBranch:       "master",
 		},
 		types.Config{
-			HttpEndpoint:       &types.Endpoint{"0.0.0.0", 1975},
-			GrpcEndpoint:       &types.Endpoint{"0.0.0.0", 1973},
+			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
+			GrpcEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1973},
 			GrpcTimeout:        5,
 			UseQuantumEntropy:  false,
 			SeedEndpoints:      seedEndpoints,
@@ -84,8 +84,6 @@ func main() {
 
 	var delegateEndpoints = getEndpoints(delegatesCount, namePrefix+"-delegate")
 
-	//Need to update the delegates with list of endpoints for all the other delegate endpoints
-
 	// Create NODEs
 	createVMs(
 		nodesCount,
@@ -95,13 +93,13 @@ func main() {
 			MachineType:      "f1-micro",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-node",
-			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/DG-484/google-cloud-spawn-vms",
+			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
-			CodeBranch:       "DG-484",
+			CodeBranch:       "master",
 		},
 		types.Config{
-			HttpEndpoint:       &types.Endpoint{"0.0.0.0", 1975},
-			GrpcEndpoint:       &types.Endpoint{"0.0.0.0", 1973},
+			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
+			GrpcEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1973},
 			GrpcTimeout:        5,
 			UseQuantumEntropy:  false,
 			SeedEndpoints:      seedEndpoints,
@@ -179,8 +177,14 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 				exec.Command(osc, ose, cmd).Run()
 			}
 
-			//disgoConfig.NodeId = vmName
-			//disgoConfig.NodeIp = getVMIP(vmName)
+			disgoConfig.GrpcEndpoint.Host = getVMIP(vmName)
+			disgoConfig.DelegateEndpoints = append(
+				disgoConfig.DelegateEndpoints,
+				&types.Endpoint{
+					Host: disgoConfig.GrpcEndpoint.Host,
+					Port: disgoConfig.GrpcEndpoint.Port,
+				},
+			)
 
 			// Save JSON config to a temp file then upload that file to the VM
 			var configFileName = randString(20) + ".json"
@@ -231,7 +235,7 @@ func getEndpoints(count int, namePrefix string) []*types.Endpoint {
 
 		var ip = getVMIP(vmName)
 		if ip != "" {
-			seedList = append(seedList, &types.Endpoint{ip, 1973})
+			seedList = append(seedList, &types.Endpoint{Host: ip, Port: 1973})
 		}
 	}
 	return seedList
