@@ -43,7 +43,7 @@ func main() {
 			NamePrefix:       namePrefix + "-seed",
 			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
-			CodeBranch:       "dev",
+			CodeBranch:       "master",
 		},
 		types.Config{
 			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
@@ -69,7 +69,7 @@ func main() {
 			NamePrefix:       namePrefix + "-delegate",
 			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
-			CodeBranch:       "dev",
+			CodeBranch:       "master",
 		},
 		types.Config{
 			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
@@ -95,7 +95,7 @@ func main() {
 			NamePrefix:       namePrefix + "-node",
 			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
 			ScriptConfigFile: "vm-debian9-configure.sh",
-			CodeBranch:       "dev",
+			CodeBranch:       "master",
 		},
 		types.Config{
 			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
