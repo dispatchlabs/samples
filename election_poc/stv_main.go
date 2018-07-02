@@ -3,16 +3,17 @@ package main
 import (
 	"fmt"
 	"github.com/dispatchlabs/samples/election_poc/stv"
+	"github.com/dispatchlabs/samples/election_poc/types"
 )
 
 func main() {
 	fmt.Println("In Main")
 
-	candidates := stv.GetCandidates()
+	candidates := types.GetCandidates()
 	//for _, cand := range candidates {
 	//	fmt.Println(cand.Name)
 	//}
-	ballots := stv.BuildMockBallots(candidates, 25)
+	ballots := types.BuildMockBallots(candidates, 25)
 	//ballots = append(ballots, stv.NewMockBallet("Bob", candidates))
 	//ballots = append(ballots, stv.NewMockBallet("Chris", candidates))
 	//ballots = append(ballots, stv.NewMockBallet("Greg", candidates))
@@ -27,9 +28,18 @@ func main() {
 		ballots,
 		0.0,
 		stv.NewElectionResults(),
-		[]stv.Candidate{},
+		[]types.Candidate{},
 		candidates,
-		[]stv.Candidate{},
+		[]types.Candidate{},
+		makeCandidateMap(candidates),
 	}
 	election.DoElection()
+}
+
+func makeCandidateMap(candidates []*types.Candidate) map[string]*types.Candidate {
+	candMap := map[string]*types.Candidate{}
+	for _, cand := range candidates {
+		candMap[cand.Name] = cand
+	}
+	return candMap
 }

@@ -1,25 +1,29 @@
 package stv
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/dispatchlabs/samples/election_poc/types"
+)
 
-func (this *Election) FractionalRedistributionWinner(candidate *ElectionResult, counter map[string]float64, roundNumber int64) (map[string]float64, []Distribution) {
-	distributions := make([]Distribution, 0)
+func (this *Election) FractionalRedistributionWinner(candidate *ElectionResult, roundNumber int64) []*types.Distribution {
+	distributions := make([]*types.Distribution, 0)
 	//check if redistribution is necessary because of excess required votes
 	if candidate.ElectionRound == roundNumber && candidate.TotalVotes > this.Droop {
 		for _, ballot := range this.Ballots {
+
 			if(this.addNextVote(candidate.Candidate.Name, ballot, roundNumber)) {
-				nextCand := ballot.Votes[roundNumber].Candidate.Name
-				if(!this.isElected(nextCand)) {
+				nextCand := ballot.Votes[roundNumber].Candidate
+				if(nextCand.ElectionStatus == "Hopefull") {
 					addPartial := ( (float64(candidate.TotalVotes - this.Droop) / candidate.TotalVotes))
 					fmt.Printf("\nAdding %v to candidate %s for voter %v\n", addPartial, nextCand, ballot.Address)
-					counter[nextCand] = counter[nextCand] + addPartial
-					distributions = append(distributions, Distribution{Candidate{nextCand}, addPartial})
+					nextCand.AddVotes(addPartial)
+					distributions = append(distributions, &types.Distribution{nextCand, &addPartial})
 				}
 			}
 		}
 	}
 	candidate.Distributions = distributions
-	this.ElectionResults.UpdateResults(*candidate)
+	this.ElectionResults.UpdateResults(candidate)
 	//for k, v := range counter {
 	//	if(!this.isElected(k)) {
 	//		if(v > this.Droop) {
@@ -35,14 +39,14 @@ func (this *Election) FractionalRedistributionWinner(candidate *ElectionResult, 
 	//
 	//	}
 	//}
-	return counter, distributions
+	return distributions
 }
 
-func (this *Election) tallyVotes(candidateToRedistribute string, ballot Ballot, roundNumber int64) {
+func (this *Election) tallyVotes(candidateToRedistribute string, ballot types.Ballot, roundNumber int64) {
 
 }
 
-func (this *Election) addNextVote(candidateToRedistribute string, ballot Ballot, roundNumber int64) bool {
+func (this *Election) addNextVote(candidateToRedistribute string, ballot types.Ballot, roundNumber int64) bool {
 	for _, vote := range ballot.Votes {
 		//find second vote for votes that were for candidates elected in this round
 		if vote.Rank == roundNumber && vote.Candidate.Name == candidateToRedistribute {
@@ -54,31 +58,24 @@ func (this *Election) addNextVote(candidateToRedistribute string, ballot Ballot,
 	return false
 }
 
-func (this *Election) isElected(candidateName string) bool {
-	result := false
-	for _, elected := range this.Elected {
-		if elected.Name == candidateName {
-			result = true
+func (this *Election) SendToNextValidCandidate(candidateToRedistribute *types.Candidate, ballot types.Ballot, roundNumber int64) *types.Candidate {
+	var result *types.Candidate
+	start := false
+	for _, vote := range ballot.Votes {
+		//making sure to redistribute the correct one ...
+		if vote.Rank == roundNumber && vote.Candidate.Name == candidateToRedistribute.Name {
+			start = true
 		}
-	}
-	return result
-}
+		if start {
+			//find next vote for votes that were for candidates elected in this round
+			if int64(len(ballot.Votes)) > roundNumber && vote.Candidate.ElectionStatus == "Hopefull" {
+				addPartial := ( (float64(vote.Candidate.CurrentVotes - this.Droop) / vote.Candidate.CurrentVotes))
+				fmt.Printf("\nAdding %v to candidate %v for voter %v\n", addPartial, vote.Candidate.ToJson(), ballot.Address)
+				vote.Candidate.AddVotes(addPartial)
+				candidateToRedistribute.AddDistribution(vote.Candidate, &addPartial)
+				break
+			}
 
-func (this *Election) isEliminated(candidateName string) bool {
-	result := false
-	for _, elected := range this.Eliminated {
-		if elected.Name == candidateName {
-			result = true
-		}
-	}
-	return result
-}
-
-func (this *Election) isHopeful(candidateName string) bool {
-	result := false
-	for _, elected := range this.Hopefuls {
-		if elected.Name == candidateName {
-			result = true
 		}
 	}
 	return result

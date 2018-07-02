@@ -2,6 +2,7 @@ package stv
 
 import (
 	"encoding/json"
+	"github.com/dispatchlabs/samples/election_poc/types"
 )
 
 type ElectionRound struct {
@@ -9,9 +10,41 @@ type ElectionRound struct {
 }
 
 type VoteCount struct {
-	Candidate 	Candidate	`json:"candidate,omitempty"`
-	Count 		float64		`json:"count,omitempty"`
+	Candidate 	*types.Candidate	`json:"candidate,omitempty"`
+	Count 		float64				`json:"count,omitempty"`
 }
+
+
+func (this ElectionRound) CountRound(droop float64, roundNbr int64) *ElectionResults {
+	electedCandidates := make([]*ElectionResult, 0)
+	elected := make([]*types.Candidate, 0)
+	eliminated := make([]*types.Candidate, 0)
+	minCount := droop
+	for _, vc := range this.VoteCount {
+		if vc.Count > droop {
+			electedCandidates = append(electedCandidates, &ElectionResult{Candidate: vc.Candidate, TotalVotes: vc.Count, ElectionRound: roundNbr, Result: "Elected"})
+			elected = append(elected, vc.Candidate)
+		} else if vc.Count < minCount {
+			minCount = vc.Count
+		}
+	}
+	//Don't eliminate anyone if there isn't at least a single candidate elected -- seems unfair .. someone could come up in the next round
+	if len(elected) > 0 {
+		for _, vc := range this.VoteCount {
+			if vc.Count == minCount {
+				eliminated = append(eliminated, vc.Candidate)
+			}
+		}
+
+	}
+	results := &ElectionResults {
+		ElectionResults: electedCandidates,
+		Elected: elected,
+		Eliminated: eliminated,
+	}
+	return results
+}
+
 
 // - Implementation of the sort interface
 
@@ -45,30 +78,4 @@ func (this ElectionRound) ToPrettyJson() string {
 		panic(err)
 	}
 	return string(jsn)
-}
-
-func (this ElectionRound) CountRound(droop float64, roundNbr int64) *ElectionResults {
-	electedCandidates := make([]ElectionResult, 0)
-	elected := make([]Candidate, 0)
-	eliminated := make([]Candidate, 0)
-	minCount := droop
-	for _, vc := range this.VoteCount {
-		if vc.Count > droop {
-			electedCandidates = append(electedCandidates, ElectionResult{Candidate: vc.Candidate, TotalVotes: vc.Count, ElectionRound: roundNbr, Result: "Elected"})
-			elected = append(elected, vc.Candidate)
-		} else if vc.Count < minCount {
-			minCount = vc.Count
-		}
-	}
-	for _, vc := range this.VoteCount {
-		if vc.Count == minCount {
-			eliminated = append(eliminated, vc.Candidate)
-		}
-	}
-	results := &ElectionResults {
-		ElectionResults: electedCandidates,
-		Elected: elected,
-		Eliminated: eliminated,
-	}
-	return results
 }

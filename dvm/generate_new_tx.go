@@ -12,7 +12,8 @@ import (
 func main() {
 	dumpNewDeployTx()
 	// dumpNewSetTx()
-	// dumpNewGetTx()
+	//dumpNewGetTx()
+	dumpBadNewGetTx()
 }
 
 func dumpNewDeployTx() {
@@ -153,6 +154,25 @@ func dumpNewSetTx() {
 	fmt.Printf("EXECUTE_Get: %s", tx.String())
 }
 
+func dumpNewXFerTx() {
+	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
+	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
+	var theTime = utils.ToMilliSeconds(time.Now())
+	//var method = "getVar5"
+	//var params = make([]interface{}, 0)
+
+	var tx, _ = types.NewTransferTokensTransaction(
+		privateKey,
+		from,
+		"",
+		1,
+		1,
+		theTime,
+	)
+	fmt.Printf("EXECUTE_Get: %s", tx.String())
+
+}
+
 func dumpNewGetTx() {
 	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
 	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
@@ -256,6 +276,32 @@ func dumpNewGetTx() {
 			"type": "constructor"
 		}
 	]`
+
+	var theTime = utils.ToMilliSeconds(time.Now())
+	var method = "getVar5"
+	var params = make([]interface{}, 0)
+
+	var tx, _ = types.NewExecuteContractTransaction(
+		privateKey,
+		from,
+		to,
+		hex.EncodeToString([]byte(abi)),
+		method,
+		params,
+		theTime,
+	)
+
+	fmt.Printf("EXECUTE_Get: %s", tx.String())
+}
+
+
+
+
+func dumpBadNewGetTx() {
+	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
+	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
+	var to = "fe8fc34a2b981fbd86ed11bf27e7d54dfd0fc54a"
+	var abi = `adfsdfsdfsfsdffffffffffffffffffffffffff`
 
 	var theTime = utils.ToMilliSeconds(time.Now())
 	var method = "getVar5"

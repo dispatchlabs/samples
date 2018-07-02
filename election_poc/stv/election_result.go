@@ -2,32 +2,28 @@ package stv
 
 import (
 	"encoding/json"
+	"github.com/dispatchlabs/samples/election_poc/types"
 )
 
 type ElectionResults struct {
-	ElectionResults	[]ElectionResult 	`json:"electionResults,omitempty"`
-	Elected			[]Candidate			`json:"elected,omitempty"`
-	Eliminated		[]Candidate			`json:"eliminated,omitempty"`
+	ElectionResults	[]*ElectionResult 	`json:"electionResults,omitempty"`
+	Elected			[]*types.Candidate	`json:"elected,omitempty"`
+	Eliminated		[]*types.Candidate	`json:"eliminated,omitempty"`
 }
 
 type ElectionResult struct {
-	Candidate 		Candidate		`json:"candidate,omitempty"`
-	TotalVotes		float64			`json:"votes,omitempty"`
-	ElectionRound	int64			`json:"occuredInRound,omitempty"`
-	Result          string      	`json:"result,omitempty"`
-	Distributions	[]Distribution	`json:"distributions,omitempty"`
-}
-
-type Distribution struct {
-	Candidate 			Candidate	`json:"candidate,omitempty"`
-	DistributedVotes	float64		`json:"distributedValue,omitempty"`
+	Candidate 		*types.Candidate		`json:"candidate,omitempty"`
+	TotalVotes		float64					`json:"votes,omitempty"`
+	ElectionRound	int64					`json:"occuredInRound,omitempty"`
+	Result          string      			`json:"result,omitempty"`
+	Distributions	[]*types.Distribution	`json:"distributions,omitempty"`
 }
 
 func NewElectionResults() *ElectionResults {
-	return &ElectionResults{[]ElectionResult{}, []Candidate{}, []Candidate{}}
+	return &ElectionResults{[]*ElectionResult{}, []*types.Candidate{}, []*types.Candidate{}}
 }
 
-func (this *ElectionResults) UpdateResults(result ElectionResult) {
+func (this *ElectionResults) UpdateResults(result *ElectionResult) {
 	for _, rslt := range this.ElectionResults {
 		if rslt.Candidate.Name == result.Candidate.Name {
 			if rslt.TotalVotes < result.TotalVotes {

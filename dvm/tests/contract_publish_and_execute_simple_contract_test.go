@@ -102,7 +102,7 @@ func executeMethod_setVar5() {
 		{
 			"constant": true,
 			"inputs": [],
-			"name": "getVar5",
+			"name": "getVar",
 			"outputs": [
 				{
 					"name": "",
