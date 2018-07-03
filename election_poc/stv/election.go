@@ -48,13 +48,8 @@ func (this *Election) DoElection() {
 			this.ElectionResults.Elected = append(this.ElectionResults.Elected, results.Elected...)
 		}
 		this.ElectionResults.Eliminated = append(this.ElectionResults.Eliminated, results.Eliminated...)
+		this.Redistribute(results.Elected, roundNbr)
 		fmt.Printf(this.ElectionResults.ToPrettyJson())
-		for _, cand := range this.ElectionResults.Elected {
-			for _, ballot := range this.Ballots {
-				this.SendToNextValidCandidate(cand, ballot, roundNbr )
-			}
-			fmt.Printf("Candidate %v\n", cand.ToJson())
-		}
 		roundNbr++
 	}
 	//electionResult := ElectionResults{results}
@@ -75,14 +70,14 @@ func (this *Election) ExecuteSimpleRound(roundNumber int64, ballots []types.Ball
 	}
 	voteCounts := make([]VoteCount, 0)
 	for k, v := range this.CandidateMap {
-		if(v.ElectionStatus == "Hopefull") {
+		if v.ElectionStatus == "Hopefull" {
 			vote := VoteCount{
 				Count: v.CurrentVotes,
 				Candidate: v,
 			}
 			voteCounts = append(voteCounts, vote)
+			fmt.Printf("Current Hopefuls: %s :: %v\n", k, v.CurrentVotes)
 		}
-		fmt.Printf("%s :: %v\n", k, v.CurrentVotes)
 	}
 	electionRound := ElectionRound{VoteCount: voteCounts}
 	sort.Sort(sort.Reverse(electionRound))
@@ -134,13 +129,13 @@ func (this *Election) ExecuteRound(counter map[string]float64, roundNumber int64
 			//result.Distributions = distributions
 		}
 	}
-	fmt.Printf("\n%v", electionRound.ToPrettyJson())
+	fmt.Printf("%v\n", electionRound.ToPrettyJson())
 	for k, v := range counter {
-		fmt.Printf("\nCOUNT: %v :: %v", k, v)
+		fmt.Printf("COUNT: %v :: %v\n", k, v)
 	}
-	fmt.Printf("\n%v", this.ToPrettyJson())
+	fmt.Printf("%v\n", this.ToPrettyJson())
 	for k, v := range counter {
-		fmt.Printf("\nCOUNT: %v :: %v", k, v)
+		fmt.Printf("COUNT: %v :: %v\n", k, v)
 	}
 	return electionResults
 }

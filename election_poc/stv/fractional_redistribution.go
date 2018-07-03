@@ -5,6 +5,59 @@ import (
 	"github.com/dispatchlabs/samples/election_poc/types"
 )
 
+
+func (this *Election) Redistribute(electedThisRound []*types.Candidate, roundNbr int64) {
+	subsequentlyElected := make([]*types.Candidate, 0)
+	for _, cand := range electedThisRound {
+		distributionList := make([]*types.Candidate, 0)
+		cand.EffectiveVotes = cand.CurrentVotes
+		for _, ballot := range this.Ballots {
+			distCandidate := this.SendToNextValidCandidate(cand, ballot, roundNbr)
+			if distCandidate != nil {
+				distributionList = append(distributionList, distCandidate)
+			}
+		}
+		for _, dCand := range distributionList {
+			addPartial := ( (float64(cand.CurrentVotes - this.Droop) / float64(len(distributionList))))
+			fmt.Printf("Adding %v to candidate %v\n", addPartial, dCand.ToJson())
+			dCand.AddVotes(addPartial)
+			cand.AddDistribution(dCand, &addPartial)
+			if dCand.CurrentVotes >= this.Droop  && dCand.ElectionStatus == "Hopefull" {
+				dCand.ElectionStatus = "Elected"
+				subsequentlyElected = append(subsequentlyElected, dCand)
+				fmt.Printf("subsequentlyElected %v\n", dCand.Name)
+				this.ElectionResults.Elected = append(this.ElectionResults.Elected, dCand)
+			}
+		}
+	}
+}
+
+//So also need to figure out up front how many votes are actually possible to distribute
+//If the ballot has no more votes because lack of entries, all others have been elected or eliminated
+//Once this is done, then you can do the distribution appropriately.
+func (this *Election) SendToNextValidCandidate(candidateToRedistribute *types.Candidate, ballot types.Ballot, roundNumber int64) *types.Candidate {
+	var result *types.Candidate
+	start := false
+	for _, vote := range ballot.Votes {
+		//making sure to redistribute the correct one ...
+		if vote.Rank == roundNumber && vote.Candidate.Name == candidateToRedistribute.Name {
+			start = true
+		}
+		if start {
+			//find next vote for votes that were for candidates elected in this round
+			if int64(len(ballot.Votes)) > roundNumber {
+				candidate := this.getCandidate(vote.Candidate.Name)
+				if candidate.ElectionStatus == "Hopefull" {
+					result = vote.Candidate
+					break
+				}
+			}
+		}
+	}
+	return result
+}
+
+
 func (this *Election) FractionalRedistributionWinner(candidate *ElectionResult, roundNumber int64) []*types.Distribution {
 	distributions := make([]*types.Distribution, 0)
 	//check if redistribution is necessary because of excess required votes
@@ -58,25 +111,3 @@ func (this *Election) addNextVote(candidateToRedistribute string, ballot types.B
 	return false
 }
 
-func (this *Election) SendToNextValidCandidate(candidateToRedistribute *types.Candidate, ballot types.Ballot, roundNumber int64) *types.Candidate {
-	var result *types.Candidate
-	start := false
-	for _, vote := range ballot.Votes {
-		//making sure to redistribute the correct one ...
-		if vote.Rank == roundNumber && vote.Candidate.Name == candidateToRedistribute.Name {
-			start = true
-		}
-		if start {
-			//find next vote for votes that were for candidates elected in this round
-			if int64(len(ballot.Votes)) > roundNumber && vote.Candidate.ElectionStatus == "Hopefull" {
-				addPartial := ( (float64(vote.Candidate.CurrentVotes - this.Droop) / vote.Candidate.CurrentVotes))
-				fmt.Printf("\nAdding %v to candidate %v for voter %v\n", addPartial, vote.Candidate.ToJson(), ballot.Address)
-				vote.Candidate.AddVotes(addPartial)
-				candidateToRedistribute.AddDistribution(vote.Candidate, &addPartial)
-				break
-			}
-
-		}
-	}
-	return result
-}
