@@ -14,7 +14,7 @@ func main() {
 
 	var delay = 500 * time.Microsecond
 	var txCount = 1000
-	var endpoint = "http://127.0.0.1:1975/v1/transactions"
+	var endpoint = "http://35.185.222.198:1975/v1/transactions"
 
 	// var waitGroup sync.WaitGroup
 	// waitGroup.Add(txCount)
