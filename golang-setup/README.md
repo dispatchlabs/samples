@@ -1,5 +1,20 @@
 # ![](https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_power_settings_new_black_24px.svg) Install
 
+
+
+- Go to the download page on golang website: https://golang.org/dl/
+- Choose the package file according to your operating system
+- Download the package file, extract it, and follow the prompts to install the Go tools. 
+
+
+##### Windows
+- For Windows open the MSI file and follow the prompts to install the Go tools. By default, the installer puts the Go distribution in the c:/Go
+- Ths installer should direct the Go path to the c:\Go\bin in your PATH environment variable. To check that open terminal and type `go env`
+- If the GoPATH was directed to somewhere else, you can edit it through the "Environment Variables" button on the "Advaced System Settings" option inside the "System" control panel.
+
+
+
+
 ##### Debian / Ubunbu
 - `sudo apt-get update`
 - `sudo apt-get upgrade`
@@ -12,17 +27,29 @@
 
 ##### Mac
 - `curl -O https://dl.google.com/go/go1.9.4.darwin-amd64.pkg`
-- Execute `go1.9.4.darwin-amd64.pkg` then next/next/finish the thing
+- Execute `sudo installer -pkg /your/path/go1.9.4.darwin-amd64.pkg -target /` then next/next/finish (you can find the path using the pwd command)
 - __OR__
 - `brew install go`
 
-##### Windows
-- Download and execute `https://dl.google.com/go/go1.9.4.windows-amd64.msi`
+
 
 # ![](https://storage.googleapis.com/material-icons/external-assets/v4/icons/svg/ic_build_black_24px.svg) Config
 
+##### Windows
+- On terminal you need to set up a workspace that consist of the three forlders (bin/ src/ pkg/) at the root (in this case the root is c:\projects\Go) using the following commands:
+     - `mkdir c:\projects\Go`
+     - `mkdir c:\projects\Go\bin`
+     - `mkdir c:\projects\Go\pkg`
+     - `mkdir c:\projects\Go\src`
+
+Then set up the GOPATH
+
+    - `set GOPATH=c:\projects\Go\bin`
+    - `set PATH=%PATH%`
+    
 ##### Dev Box
-- Linux and Mac
+- Linux and Mac: paste the following commands in terminal:
+
 	- `mkdir ~/go`
 	- `nano ~/.bashrc`
 		- `export GOPATH=$HOME/go`
@@ -30,12 +57,7 @@
 		- OR
 		- `export PATH=$PATH:/usr/local/go/bin:$GOPATH/bin` - for Debian/Ubuntu
 
-- Windows
-	- `set GOPATH=c:\Users\%USERNAME%\go`
-	- `mkdir C:\GOPATH\bin`
-	- `mkdir C:\GOPATH\pkg`
-	- `mkdir C:\GOPATH\src`
-	- `set PATH=%PATH%;%GOPATH%\bin`
+
 
 #### Test It
 - `go env`
