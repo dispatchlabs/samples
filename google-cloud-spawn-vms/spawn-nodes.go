@@ -28,9 +28,9 @@ type VMsConfig struct {
 
 func main() {
 	var seedsCount = 1
-	var delegatesCount = 2
-	var nodesCount = 2
-	var namePrefix = "test-nicolae-debug"
+	var delegatesCount = 5
+	var nodesCount = 0
+	var namePrefix = "test-net-2-0-3"
 
 	// Create SEEDs
 	createVMs(
@@ -38,7 +38,7 @@ func main() {
 		VMsConfig{
 			ImageProject:     "debian-cloud",
 			ImageFamily:      "debian-9",
-			MachineType:      "f1-micro",
+			MachineType:      "n1-standard-2",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-seed",
 			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
@@ -64,7 +64,7 @@ func main() {
 		VMsConfig{
 			ImageProject:     "debian-cloud",
 			ImageFamily:      "debian-9",
-			MachineType:      "f1-micro",
+			MachineType:      "n1-standard-2",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-delegate",
 			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
@@ -90,7 +90,7 @@ func main() {
 		VMsConfig{
 			ImageProject:     "debian-cloud",
 			ImageFamily:      "debian-9",
-			MachineType:      "f1-micro",
+			MachineType:      "n1-standard-2",
 			Tags:             "disgo-node",
 			NamePrefix:       namePrefix + "-node",
 			ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
