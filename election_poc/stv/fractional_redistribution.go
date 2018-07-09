@@ -22,8 +22,8 @@ func (this *Election) Redistribute(electedThisRound []*types.Candidate, roundNbr
 			dCand.AddVotes(addPartial)
 			fmt.Printf("Adding %v to candidate %v from candidate %s\n", addPartial, dCand.ToJson(), cand.Name)
 			cand.AddDistribution(dCand, &addPartial)
-			if dCand.CurrentVotes >= this.Droop  && dCand.ElectionStatus == "Hopefull" {
-				dCand.ElectionStatus = "Elected"
+			if dCand.CurrentVotes >= this.Droop  && dCand.ElectionStatus == types.StatusHopefull {
+				dCand.ElectionStatus = types.StatusElected
 				subsequentlyElected = append(subsequentlyElected, dCand)
 				fmt.Printf("subsequentlyElected %v\n", dCand.Name)
 				this.ElectionResults.Elected = append(this.ElectionResults.Elected, dCand)
@@ -47,7 +47,7 @@ func (this *Election) SendToNextValidCandidate(candidateToRedistribute *types.Ca
 			//find next vote for votes that were for candidates elected in this round
 			if int64(len(ballot.Votes)) > roundNumber {
 				candidate := this.getCandidate(vote.Candidate.Name)
-				if candidate.ElectionStatus == "Hopefull" {
+				if candidate.ElectionStatus == types.StatusHopefull {
 					result = vote.Candidate
 					break
 				}
@@ -61,12 +61,12 @@ func (this *Election) SendToNextValidCandidate(candidateToRedistribute *types.Ca
 func (this *Election) FractionalRedistributionWinner(candidate *ElectionResult, roundNumber int64) []*types.Distribution {
 	distributions := make([]*types.Distribution, 0)
 	//check if redistribution is necessary because of excess required votes
-	if candidate.ElectionRound == roundNumber && candidate.TotalVotes > this.Droop {
+	if candidate.RoundNumber == roundNumber && candidate.TotalVotes > this.Droop {
 		for _, ballot := range this.Ballots {
 
 			if(this.addNextVote(candidate.Candidate.Name, ballot, roundNumber)) {
 				nextCand := ballot.Votes[roundNumber].Candidate
-				if(nextCand.ElectionStatus == "Hopefull") {
+				if(nextCand.ElectionStatus == types.StatusHopefull) {
 					addPartial := ( (float64(candidate.TotalVotes - this.Droop) / candidate.TotalVotes))
 					fmt.Printf("\nAdding %v to candidate %s for voter %v\n", addPartial, nextCand, ballot.Address)
 					nextCand.AddVotes(addPartial)

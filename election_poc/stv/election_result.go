@@ -12,11 +12,11 @@ type ElectionResults struct {
 }
 
 type ElectionResult struct {
-	Candidate 		*types.Candidate		`json:"candidate,omitempty"`
-	TotalVotes		float64					`json:"votes,omitempty"`
-	ElectionRound	int64					`json:"occuredInRound,omitempty"`
-	Result          string      			`json:"result,omitempty"`
-	Distributions	[]*types.Distribution	`json:"distributions,omitempty"`
+	Candidate     *types.Candidate      `json:"candidate,omitempty"`
+	TotalVotes    float64               `json:"votes,omitempty"`
+	RoundNumber   int64                 `json:"occuredInRound,omitempty"`
+	Result        string                `json:"result,omitempty"`
+	Distributions []*types.Distribution `json:"distributions,omitempty"`
 }
 
 func NewElectionResults() *ElectionResults {

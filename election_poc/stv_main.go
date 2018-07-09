@@ -4,16 +4,17 @@ import (
 	"fmt"
 	"github.com/dispatchlabs/samples/election_poc/stv"
 	"github.com/dispatchlabs/samples/election_poc/types"
+	"github.com/dispatchlabs/samples/election_poc/mock"
 )
 
 func main() {
 	fmt.Println("In Main")
 
-	candidates := types.GetCandidates()
+	candidates := mock.GetCandidates()
 	//for _, cand := range candidates {
 	//	fmt.Println(cand.Name)
 	//}
-	ballots := types.BuildMockBallots(candidates, 25)
+	ballots := mock.BuildMockBallots(candidates, 25)
 
 	election := stv.Election {
 		5,

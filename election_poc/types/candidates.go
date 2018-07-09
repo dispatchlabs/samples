@@ -1,7 +1,6 @@
 package types
 
 import (
-	"fmt"
 	"encoding/json"
 )
 
@@ -20,16 +19,7 @@ type Candidate struct {
 	//Description   	string
 }
 
-func GetCandidates() []*Candidate {
-	candidates := make([]*Candidate, 0)
-	for i := 0; i < 10; i++ {
-		candidates = append(candidates, &Candidate{fmt.Sprintf("Delegate-%d", i), 0, 0,"Hopefull", []*Distribution{}})
-	}
-	return candidates;
-}
-
 func (this *Candidate) AddVotes(value float64) {
-	//utils.Info(fmt.Sprintf("AddVotes: %v :: %v ", this.Name, this.CurrentVotes))
 	this.CurrentVotes += value
 }
 

@@ -22,7 +22,7 @@ func (this ElectionRound) CountRound(droop float64, roundNbr int64) *ElectionRes
 	minCount := droop
 	for _, vc := range this.VoteCount {
 		if vc.Count > droop {
-			electedCandidates = append(electedCandidates, &ElectionResult{Candidate: vc.Candidate, TotalVotes: vc.Count, ElectionRound: roundNbr, Result: "Elected"})
+			electedCandidates = append(electedCandidates, &ElectionResult{Candidate: vc.Candidate, TotalVotes: vc.Count, RoundNumber: roundNbr, Result: types.StatusElected})
 			elected = append(elected, vc.Candidate)
 		} else if vc.Count < minCount {
 			minCount = vc.Count
