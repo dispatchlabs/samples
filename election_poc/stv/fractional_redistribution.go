@@ -19,8 +19,8 @@ func (this *Election) Redistribute(electedThisRound []*types.Candidate, roundNbr
 		}
 		for _, dCand := range distributionList {
 			addPartial := ( (float64(cand.CurrentVotes - this.Droop) / float64(len(distributionList))))
-			fmt.Printf("Adding %v to candidate %v\n", addPartial, dCand.ToJson())
 			dCand.AddVotes(addPartial)
+			fmt.Printf("Adding %v to candidate %v from candidate %s\n", addPartial, dCand.ToJson(), cand.Name)
 			cand.AddDistribution(dCand, &addPartial)
 			if dCand.CurrentVotes >= this.Droop  && dCand.ElectionStatus == "Hopefull" {
 				dCand.ElectionStatus = "Elected"

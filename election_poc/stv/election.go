@@ -19,9 +19,9 @@ type Election struct {
 }
 
 func (this *Election) DoElection() {
-	for _, ballot := range this.Ballots {
-		fmt.Printf("Ballot: %v\n", ballot.ToJson())
-	}
+	//for _, ballot := range this.Ballots {
+	//	fmt.Printf("Ballot: %v\n", ballot.ToJson())
+	//}
 	nbrBallots := float64(len(this.Ballots))
 	denom := float64(this.NbrVacancies + 1)
 	this.Droop =  float64(nbrBallots / denom) + 1
