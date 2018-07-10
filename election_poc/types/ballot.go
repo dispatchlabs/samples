@@ -8,11 +8,16 @@ type Ballot struct {
 	Address		string		`json:"address,omitempty"`
 	Votes		[]Vote		`json:"votes,omitempty"`
 	Stake		int64		`json:"stake,omitempty"`
+	Status      string      `json:"status,omitempty"`
 }
 
 type Vote struct {
 	Candidate 	*Candidate	`json:"candidate,omitempty"`
 	Rank		int64		`json:"rank,omitempty"`
+}
+
+func (this *Ballot) SetStatus(status string) {
+	this.Status = status
 }
 
 func (this Ballot) ToJson() string {
@@ -29,4 +34,13 @@ func (this Ballot) ToPrettyJson() string {
 		panic(err)
 	}
 	return string(jsn)
+}
+
+func (this *Ballot) CheckForStatusChangeAfterElection(candidate *Candidate, roundNbr int64) {
+	for _, v := range this.Votes {
+		if v.Candidate.Name == candidate.Name && v.Rank <= roundNbr {
+			//iterate and see if this vote should be applied
+		}
+	}
+
 }

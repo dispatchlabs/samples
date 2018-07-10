@@ -29,24 +29,40 @@ func (this *Election) DoElection() {
 	roundNbr = 1
 	for int64(len(this.ElectionResults.ElectionResults)) < this.NbrVacancies {
 
-		results := this.ExecuteSimpleRound(roundNbr, this.Ballots)
-		this.ReconcileMainRound(results)
+		electionRound := this.ExecuteRound(roundNbr, this.Ballots)
+		electedCandidates := make([]*ElectionResult, 0)
 
-		sort.Sort(sort.Reverse(results))
+		for _, cand := range electionRound.Elected {
+			electedCandidates = append(electedCandidates, &ElectionResult{Candidate: cand, TotalVotes: cand.CurrentVotes, RoundNumber: roundNbr, Result: types.StatusElected})
+		}
+		electionResults := &ElectionResults {
+			ElectionResults: electedCandidates,
+			Elected: electionRound.Elected,
+			Eliminated: electionRound.Eliminated,
+		}
+
+
+
+
+
+
+		this.ReconcileMainRound(electionResults)
+
+		sort.Sort(sort.Reverse(electionResults))
 		remaining := this.NbrVacancies - int64(len(this.ElectionResults.Elected))
 		if remaining <= 0 {
 			fmt.Printf("\nEnough candidates are elected")
 			break
-		} else if(int64(len(results.Elected)) > remaining) {
-			this.ElectionResults.ElectionResults = append(this.ElectionResults.ElectionResults, results.ElectionResults[:remaining]...)
-			this.ElectionResults.Elected = append(this.ElectionResults.Elected, results.Elected[:remaining]...)
+		} else if(int64(len(electionResults.Elected)) > remaining) {
+			this.ElectionResults.ElectionResults = append(this.ElectionResults.ElectionResults, electionResults.ElectionResults[:remaining]...)
+			this.ElectionResults.Elected = append(this.ElectionResults.Elected, electionResults.Elected[:remaining]...)
 
 		} else {
-			this.ElectionResults.ElectionResults = append(this.ElectionResults.ElectionResults, results.ElectionResults...)
-			this.ElectionResults.Elected = append(this.ElectionResults.Elected, results.Elected...)
+			this.ElectionResults.ElectionResults = append(this.ElectionResults.ElectionResults, electionResults.ElectionResults...)
+			this.ElectionResults.Elected = append(this.ElectionResults.Elected, electionResults.Elected...)
 		}
-		this.ElectionResults.Eliminated = append(this.ElectionResults.Eliminated, results.Eliminated...)
-		this.Redistribute(results.Elected, roundNbr)
+		this.ElectionResults.Eliminated = append(this.ElectionResults.Eliminated, electionResults.Eliminated...)
+		this.Redistribute(electionResults.Elected, roundNbr)
 		fmt.Printf(this.ElectionResults.ToPrettyJson())
 		roundNbr++
 	}
@@ -56,7 +72,7 @@ func (this *Election) DoElection() {
 
 }
 
-func (this *Election) ExecuteSimpleRound(roundNumber int64, ballots []types.Ballot) *ElectionResults {
+func (this *Election) ExecuteRound(roundNumber int64, ballots []types.Ballot) *ElectionRound {
 	for _, ballot := range this.Ballots {
 		for _, vote := range ballot.Votes {
 			if vote.Rank == roundNumber {
@@ -77,11 +93,11 @@ func (this *Election) ExecuteSimpleRound(roundNumber int64, ballots []types.Ball
 			fmt.Printf("Current Hopefuls: %s :: %v\n", k, v.CurrentVotes)
 		}
 	}
-	electionRound := ElectionRound{VoteCount: voteCounts}
+	electionRound := &ElectionRound{VoteCount: voteCounts}
 	sort.Sort(sort.Reverse(electionRound))
-	electionResults := electionRound.CountRound(this.Droop, roundNumber)
+	electionRound.CountRound(this.Droop, roundNumber)
 
-	return electionResults
+	return electionRound
 }
 
 

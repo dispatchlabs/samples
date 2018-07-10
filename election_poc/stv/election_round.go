@@ -6,7 +6,10 @@ import (
 )
 
 type ElectionRound struct {
-	VoteCount 	[]VoteCount	`json:"voteCount,omitempty"`
+	VoteCount 	[]VoteCount			`json:"voteCount,omitempty"`
+	Elected		[]*types.Candidate	`json:"elected,omitempty"`
+	Eliminated	[]*types.Candidate	`json:"eliminated,omitempty"`
+
 }
 
 type VoteCount struct {
@@ -15,34 +18,23 @@ type VoteCount struct {
 }
 
 
-func (this ElectionRound) CountRound(droop float64, roundNbr int64) *ElectionResults {
-	electedCandidates := make([]*ElectionResult, 0)
-	elected := make([]*types.Candidate, 0)
-	eliminated := make([]*types.Candidate, 0)
+func (this *ElectionRound) CountRound(droop float64, roundNbr int64) {
 	minCount := droop
 	for _, vc := range this.VoteCount {
 		if vc.Count > droop {
-			electedCandidates = append(electedCandidates, &ElectionResult{Candidate: vc.Candidate, TotalVotes: vc.Count, RoundNumber: roundNbr, Result: types.StatusElected})
-			elected = append(elected, vc.Candidate)
+			this.Elected = append(this.Elected, vc.Candidate)
 		} else if vc.Count < minCount {
 			minCount = vc.Count
 		}
 	}
 	//Don't eliminate anyone if there isn't at least a single candidate elected -- seems unfair .. someone could come up in the next round
-	if len(elected) > 0 {
+	if len(this.Elected) > 0 {
 		for _, vc := range this.VoteCount {
 			if vc.Count == minCount {
-				eliminated = append(eliminated, vc.Candidate)
+				this.Eliminated = append(this.Eliminated, vc.Candidate)
 			}
 		}
-
 	}
-	results := &ElectionResults {
-		ElectionResults: electedCandidates,
-		Elected: elected,
-		Eliminated: eliminated,
-	}
-	return results
 }
 
 
