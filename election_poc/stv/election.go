@@ -9,7 +9,7 @@ import (
 
 type Election struct {
 	NbrVacancies		int64				`json:"nbrVacancies,omitempty"`
-	Ballots				[]types.Ballot		`json:"-"`
+	Ballots				[]*types.Ballot		`json:"-"`
 	Droop				float64				`json:"droop,omitempty"`
 	ElectionResults		*ElectionResults	`json:"electionResult,omitempty"`
 	Elected				[]types.Candidate	`json:"elected,omitempty"`
@@ -29,21 +29,18 @@ func (this *Election) DoElection() {
 	roundNbr = 1
 	for int64(len(this.ElectionResults.ElectionResults)) < this.NbrVacancies {
 
-		electionRound := this.ExecuteRound(roundNbr, this.Ballots)
+		electionRound := this.ExecuteRound(roundNbr)
 		electedCandidates := make([]*ElectionResult, 0)
 
 		for _, cand := range electionRound.Elected {
 			electedCandidates = append(electedCandidates, &ElectionResult{Candidate: cand, TotalVotes: cand.CurrentVotes, RoundNumber: roundNbr, Result: types.StatusElected})
+			this.UpdateBallots(cand, roundNbr)
 		}
 		electionResults := &ElectionResults {
 			ElectionResults: electedCandidates,
 			Elected: electionRound.Elected,
 			Eliminated: electionRound.Eliminated,
 		}
-
-
-
-
 
 
 		this.ReconcileMainRound(electionResults)
@@ -72,8 +69,17 @@ func (this *Election) DoElection() {
 
 }
 
-func (this *Election) ExecuteRound(roundNumber int64, ballots []types.Ballot) *ElectionRound {
+func (this *Election) UpdateBallots(candidate *types.Candidate, roundNumber int64) {
 	for _, ballot := range this.Ballots {
+		ballot.UpdateForStatusChangeAfterElection(candidate, roundNumber)
+	}
+}
+
+func (this *Election) ExecuteRound(roundNumber int64) *ElectionRound {
+	for _, ballot := range this.Ballots {
+		if ballot.Status == types.StatusApplied {
+			continue
+		}
 		for _, vote := range ballot.Votes {
 			if vote.Rank == roundNumber {
 				if vote.Candidate.ElectionStatus == types.StatusHopefull {

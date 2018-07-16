@@ -72,7 +72,7 @@ func (this ElectionResults) Swap(i, j int) {
 	this.ElectionResults[i], this.ElectionResults[j] = this.ElectionResults[j], this.ElectionResults[i]
 }
 
-// - Less is part of sort.Interface. We use Aroma Value (similarity) as the value to sort by
+// - Less is part of sort.Interface.
 func (this ElectionResults) Less(i, j int) bool {
 	return this.ElectionResults[i].TotalVotes < this.ElectionResults[j].TotalVotes
 }

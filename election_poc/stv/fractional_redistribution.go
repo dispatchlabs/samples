@@ -35,7 +35,7 @@ func (this *Election) Redistribute(electedThisRound []*types.Candidate, roundNbr
 //So also need to figure out up front how many votes are actually possible to distribute
 //If the ballot has no more votes because lack of entries, all others have been elected or eliminated
 //Once this is done, then you can do the distribution appropriately.
-func (this *Election) SendToNextValidCandidate(candidateToRedistribute *types.Candidate, ballot types.Ballot, roundNumber int64) *types.Candidate {
+func (this *Election) SendToNextValidCandidate(candidateToRedistribute *types.Candidate, ballot *types.Ballot, roundNumber int64) *types.Candidate {
 	var result *types.Candidate
 	start := false
 	for _, vote := range ballot.Votes {
@@ -99,7 +99,7 @@ func (this *Election) tallyVotes(candidateToRedistribute string, ballot types.Ba
 
 }
 
-func (this *Election) addNextVote(candidateToRedistribute string, ballot types.Ballot, roundNumber int64) bool {
+func (this *Election) addNextVote(candidateToRedistribute string, ballot *types.Ballot, roundNumber int64) bool {
 	for _, vote := range ballot.Votes {
 		//find second vote for votes that were for candidates elected in this round
 		if vote.Rank == roundNumber && vote.Candidate.Name == candidateToRedistribute {

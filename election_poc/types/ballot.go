@@ -36,11 +36,21 @@ func (this Ballot) ToPrettyJson() string {
 	return string(jsn)
 }
 
-func (this *Ballot) CheckForStatusChangeAfterElection(candidate *Candidate, roundNbr int64) {
+func (this *Ballot) UpdateForStatusChangeAfterElection(candidate *Candidate, roundNbr int64) {
+	if this.Status == StatusApplied {
+		return
+	}
 	for _, v := range this.Votes {
 		if v.Candidate.Name == candidate.Name && v.Rank <= roundNbr {
-			//iterate and see if this vote should be applied
+			this.Status = StatusApplied
 		}
 	}
+}
 
+func (this *Ballot) CheckForStatusChangeAfterElimination(candidate *Candidate, roundNbr int64) {
+	for _, v := range this.Votes {
+		if this.Status == StatusUncounted && v.Candidate.Name == candidate.Name && v.Rank <= roundNbr {
+			this.Status = StatusPending
+		}
+	}
 }
