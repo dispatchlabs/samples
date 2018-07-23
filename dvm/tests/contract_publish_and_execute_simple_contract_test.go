@@ -72,6 +72,7 @@ func deployContract() {
 		privateKey,
 		from,
 		code,
+		"",
 		theTime,
 	)
 

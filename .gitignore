@@ -6,3 +6,7 @@ debug
 
 *.iml
 key.json
+
+*.vlog
+LOCK
+MANIFEST

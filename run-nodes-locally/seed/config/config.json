@@ -8,23 +8,32 @@
 		"port": 1973
 	},
 	"grpcTimeout": 5,
-	"seedEndpoints": [],
-	"delegateEndpoints": [
+	"seedEndpoints": [
 		{
 			"host": "127.0.0.1",
-			"port": 1173
+			"port": 1973
+		}
+	],
+	"delegates": [
+		{
+			"address": "98d7db9f35f659a0ee2a9f1426ecaf4a9b833f9b", 
+			"endpoint": {"host": "127.0.0.1", "port": 1173}, 
+			"type": "Delegate"
 		},
 		{
-			"host": "127.0.0.1",
-			"port": 1273
+			"address": "70c8b77ecf97dc172aea2e239f2d6555559f1f63", 
+			"endpoint": {"host": "127.0.0.1", "port": 1273}, 
+			"type": "Delegate"
 		},
 		{
-			"host": "127.0.0.1",
-			"port": 1373
+			"address": "44cf62c3c1114c84431b88bda4c299e1da7d81f1", 
+			"endpoint": {"host": "127.0.0.1", "port": 1373}, 
+			"type": "Delegate"
 		},
 		{
-			"host": "127.0.0.1",
-			"port": 1473
+			"address": "5b8ed25009b46c48512c258d9903d30cfa0d71fd", 
+			"endpoint": {"host": "127.0.0.1", "port": 1473}, 
+			"type": "Delegate"
 		}
 	],
 	"useQuantumEntropy": false,
