@@ -10,3 +10,9 @@ key.json
 *.vlog
 LOCK
 MANIFEST
+run-nodes-locally/delegate-1/disgo
+run-nodes-locally/delegate-1/disgo
+run-nodes-locally/delegate-2/disgo
+run-nodes-locally/delegate-3/disgo
+run-nodes-locally/delegate-4/disgo
+run-nodes-locally/seed/disgo

@@ -51,12 +51,12 @@ func main() {
 			GrpcTimeout:        5,
 			UseQuantumEntropy:  false,
 			SeedEndpoints:      []*types.Endpoint{},
-			DelegateEndpoints:  []*types.Endpoint{},
+			Delegates:  		[]*types.Node{},
 			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
 
-	var seedEndpoints = getEndpoints(seedsCount, namePrefix+"-seed")
+	var seedEndpoints = getEndpoints(seedsCount)
 
 	// Create DELEGATEs
 	createVMs(
@@ -77,12 +77,12 @@ func main() {
 			GrpcTimeout:        5,
 			UseQuantumEntropy:  false,
 			SeedEndpoints:      seedEndpoints,
-			DelegateEndpoints:  []*types.Endpoint{},
+			Delegates:  		[]*types.Node{},
 			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
 
-	var delegateEndpoints = getEndpoints(delegatesCount, namePrefix+"-delegate")
+	var delegates = getDelegates(delegatesCount)
 
 	// Create NODEs
 	createVMs(
@@ -103,7 +103,7 @@ func main() {
 			GrpcTimeout:        5,
 			UseQuantumEntropy:  false,
 			SeedEndpoints:      seedEndpoints,
-			DelegateEndpoints:  delegateEndpoints,
+			Delegates:  		delegates,
 			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
@@ -178,13 +178,12 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 			}
 
 			disgoConfig.GrpcEndpoint.Host = getVMIP(vmName)
-			disgoConfig.DelegateEndpoints = append(
-				disgoConfig.DelegateEndpoints,
-				&types.Endpoint{
-					Host: disgoConfig.GrpcEndpoint.Host,
-					Port: disgoConfig.GrpcEndpoint.Port,
-				},
-			)
+			endpoint := &types.Endpoint{
+				Host: disgoConfig.GrpcEndpoint.Host,
+				Port: disgoConfig.GrpcEndpoint.Port,
+			}
+			node := &types.Node{"", endpoint, types.TypeDelegate }
+			disgoConfig.Delegates= append(disgoConfig.Delegates, node)
 
 			// Save JSON config to a temp file then upload that file to the VM
 			var configFileName = randString(20) + ".json"
@@ -227,7 +226,8 @@ func getVMIP(vmName string) string {
 	return ""
 }
 
-func getEndpoints(count int, namePrefix string) []*types.Endpoint {
+func getEndpoints(count int) []*types.Endpoint {
+	namePrefix := "-delegate"
 	var seedList = []*types.Endpoint{}
 
 	for i := 0; i < count; i++ {
@@ -239,6 +239,23 @@ func getEndpoints(count int, namePrefix string) []*types.Endpoint {
 		}
 	}
 	return seedList
+}
+
+func getDelegates(count int) []*types.Node {
+	namePrefix := "-seed"
+	var delegateList = []*types.Node{}
+
+	for i := 0; i < count; i++ {
+		var vmName = fmt.Sprintf("%s-%d", namePrefix, i)
+
+		var ip = getVMIP(vmName)
+		if ip != "" {
+			endpoint := &types.Endpoint{Host: ip, Port: 1973}
+			node := &types.Node {"", endpoint, types.TypeDelegate}
+			delegateList = append(delegateList, node)
+		}
+	}
+	return delegateList
 }
 
 func randString(n int) string {
