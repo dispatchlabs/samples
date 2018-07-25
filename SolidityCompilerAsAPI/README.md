@@ -7,6 +7,7 @@ sudo apt-get update
 sudo apt-get install solc
 
 # Service Setup
+```shell
 sudo useradd dispatch-services -s /sbin/nologin -M
 sudo chown -R dispatch-services:dispatch-services /go-binaries
 
@@ -24,10 +25,10 @@ echo 'WantedBy=multi-user.target'						| sudo tee --append /etc/systemd/system/d
 
 sudo systemctl enable dispatch-compiler-service
 sudo systemctl start dispatch-compiler-service
-
+```
 
 # Go Setup
-```
+```shell
 sudo apt-get update
 sudo apt-get install -y htop git gcc
 curl -O https://dl.google.com/go/go1.9.4.linux-amd64.tar.gz
@@ -42,7 +43,7 @@ PATH=$PATH:/usr/local/go/bin:$GOPATH/bin
 ```
 
 # Code Setup
-```
+```shell
 go get github.com/dispatchlabs/samples
 cd /home/nicu/go/src/github.com/dispatchlabs/samples/
 cd SolidityCompilerAsAPI/
