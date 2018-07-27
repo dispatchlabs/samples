@@ -28,9 +28,9 @@ type VMsConfig struct {
 
 func main() {
 	var seedsCount = 1
-	var delegatesCount = 2
+	var delegatesCount = 3
 	var nodesCount = 0
-	var namePrefix = "nicolae-test-dg-658"
+	var namePrefix = "staging-dev-branch"
 
 	// Create SEEDs
 	createVMs(
@@ -46,12 +46,12 @@ func main() {
 			CodeBranch:       "dev",
 		},
 		types.Config{
-			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
-			GrpcEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1973},
-			GrpcTimeout:        5,
-			UseQuantumEntropy:  false,
-			SeedEndpoints:      []*types.Endpoint{},
-			Delegates:          []*types.Node{},
+			HttpEndpoint:      &types.Endpoint{Host: "0.0.0.0", Port: 1975},
+			GrpcEndpoint:      &types.Endpoint{Host: "0.0.0.0", Port: 1973},
+			GrpcTimeout:       5,
+			UseQuantumEntropy: false,
+			SeedEndpoints:     []*types.Endpoint{},
+			// Delegates:          []*types.Node{},
 			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
@@ -72,17 +72,17 @@ func main() {
 			CodeBranch:       "dev",
 		},
 		types.Config{
-			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
-			GrpcEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1973},
-			GrpcTimeout:        5,
-			UseQuantumEntropy:  false,
-			SeedEndpoints:      seedEndpoints,
-			Delegates:          []*types.Node{},
+			HttpEndpoint:      &types.Endpoint{Host: "0.0.0.0", Port: 1975},
+			GrpcEndpoint:      &types.Endpoint{Host: "0.0.0.0", Port: 1973},
+			GrpcTimeout:       5,
+			UseQuantumEntropy: false,
+			SeedEndpoints:     seedEndpoints,
+			// Delegates:          []*types.Node{},
 			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
 
-	var delegates = getDelegates(delegatesCount)
+	// var delegates = getDelegates(delegatesCount)
 
 	// Create NODEs
 	createVMs(
@@ -98,12 +98,12 @@ func main() {
 			CodeBranch:       "dev",
 		},
 		types.Config{
-			HttpEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1975},
-			GrpcEndpoint:       &types.Endpoint{Host: "0.0.0.0", Port: 1973},
-			GrpcTimeout:        5,
-			UseQuantumEntropy:  false,
-			SeedEndpoints:      seedEndpoints,
-			Delegates:          delegates,
+			HttpEndpoint:      &types.Endpoint{Host: "0.0.0.0", Port: 1975},
+			GrpcEndpoint:      &types.Endpoint{Host: "0.0.0.0", Port: 1973},
+			GrpcTimeout:       5,
+			UseQuantumEntropy: false,
+			SeedEndpoints:     seedEndpoints,
+			// Delegates:          delegates,
 			GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
 		},
 	)
@@ -178,12 +178,12 @@ func createVMs(count int, vmsConfig VMsConfig, disgoConfig types.Config) {
 			}
 
 			disgoConfig.GrpcEndpoint.Host = getVMIP(vmName)
-			endpoint := &types.Endpoint{
-				Host: disgoConfig.GrpcEndpoint.Host,
-				Port: disgoConfig.GrpcEndpoint.Port,
-			}
-			node := &types.Node{"", endpoint, types.TypeDelegate}
-			disgoConfig.Delegates = append(disgoConfig.Delegates, node)
+			// endpoint := &types.Endpoint{
+			// 	Host: disgoConfig.GrpcEndpoint.Host,
+			// 	Port: disgoConfig.GrpcEndpoint.Port,
+			// }
+			// node := &types.Node{"", endpoint, types.TypeDelegate}
+			// disgoConfig.Delegates = append(disgoConfig.Delegates, node)
 
 			// Save JSON config to a temp file then upload that file to the VM
 			var configFileName = randString(20) + ".json"
@@ -251,7 +251,11 @@ func getDelegates(count int) []*types.Node {
 		var ip = getVMIP(vmName)
 		if ip != "" {
 			endpoint := &types.Endpoint{Host: ip, Port: 1973}
-			node := &types.Node{"", endpoint, types.TypeDelegate}
+			node := &types.Node{
+				Address:  "",
+				Endpoint: endpoint,
+				Type:     types.TypeDelegate,
+			}
 			delegateList = append(delegateList, node)
 		}
 	}
