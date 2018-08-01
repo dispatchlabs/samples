@@ -67,25 +67,19 @@ func LoopsTesting_deployContract() {
 		privateKey,
 		from,
 		code,
+		"",
 		theTime,
 	)
 
-	// TAKEN FROM `func (this *DAPoSService) startGossiping`
+	// TAKEN FROM: func (this *DAPoSService) startGossiping(transaction *types.Transaction)
 
-	var fakeReceipt = &types.Receipt{
-		Id:                  "fake1",
-		Type:                "fake1",
-		Status:              "fake1",
-		HumanReadableStatus: "fake1",
-	}
-	services.GetCache().Set(fakeReceipt.Id, fakeReceipt, types.ReceiptCacheTTL)
+	// // Cache gossip with my rumor.
+	// fakeGossip := types.NewGossip(*tx)
+	// rumor := types.NewRumor(types.GetAccount().PrivateKey, types.GetAccount().Address, tx.Hash)
+	// fakeGossip.Rumors = append(fakeGossip.Rumors, *rumor)
+	// fakeGossip.Cache(services.GetCache())
 
-	var fakeGossip = &types.Gossip{
-		ReceiptId:   fakeReceipt.Id,
-		Transaction: *tx,
-	}
-
-	dapos.GetDAPoSService().Temp_ProcessTransaction(fakeGossip)
+	dapos.GetDAPoSService().Temp_ProcessTransaction(tx)
 }
 
 func executeMethod_IncHundredTimes() {
@@ -108,7 +102,7 @@ func executeMethod_IncHundredTimes() {
 			"stateMutability": "pure",
 			"type": "function"
 		},
-		{
+		{ 
 			"constant": true,
 			"inputs": [],
 			"name": "IncBilTimesForFor",
@@ -208,17 +202,13 @@ func executeMethod_IncHundredTimes() {
 		theTime,
 	)
 
-	var fakeReceipt = &types.Receipt{
-		Id:                  "fake2",
-		Type:                "fake2",
-		Status:              "fake2",
-		HumanReadableStatus: "fake2",
-	}
-	services.GetCache().Set(fakeReceipt.Id, fakeReceipt, types.ReceiptCacheTTL)
+	// TAKEN FROM: func (this *DAPoSService) startGossiping(transaction *types.Transaction)
 
-	var fakeGossip = &types.Gossip{
-		ReceiptId:   fakeReceipt.Id,
-		Transaction: *tx,
-	}
-	dapos.GetDAPoSService().Temp_ProcessTransaction(fakeGossip)
+	// Cache gossip with my rumor.
+	// fakeGossip := types.NewGossip(*tx)
+	// rumor := types.NewRumor(types.GetAccount().PrivateKey, types.GetAccount().Address, tx.Hash)
+	// fakeGossip.Rumors = append(fakeGossip.Rumors, *rumor)
+	// fakeGossip.Cache(services.GetCache())
+
+	dapos.GetDAPoSService().Temp_ProcessTransaction(tx)
 }

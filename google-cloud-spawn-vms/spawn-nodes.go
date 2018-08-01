@@ -30,7 +30,7 @@ func main() {
 	var seedsCount = 1
 	var delegatesCount = 3
 	var nodesCount = 0
-	var namePrefix = "staging-dev-branch"
+	var namePrefix = "stage"
 
 	// Create SEEDs
 	createVMs(
