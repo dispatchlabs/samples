@@ -29,14 +29,6 @@ func (this *ExecutionTiming) GetTiming() string {
 		this.TxSubmitTime.Format(time.StampMilli),
 		this.Receipt.Created.Format(time.StampMilli),
 	)
-	//return fmt.Sprintf("CreateIndex = %s Tx Create Time: %v Submit time: %v SubmitDelta: %d Execute time: %v ExecuteDelta: %d",
-	//	this.CreateIndex,
-	//	this.Tx.ToTime(),
-	//	this.TxSubmitTime,
-	//	this.Receipt.Created,
-	//	this.SubmitDelta,
-	//	this.ExecuteDelta,
-	//)
 }
 
 func AddTx(index int, tx *types.Transaction) {
