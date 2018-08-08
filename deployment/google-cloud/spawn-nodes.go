@@ -156,7 +156,9 @@ func createVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 				exec.Command(getOSC(), getOSE(), cmd).Run()
 			}
 
-			disgoConfig.GrpcEndpoint.Host = getVMIP(vmName)
+			var thisVMIP = getVMIP(vmName)
+			disgoConfig.HttpEndpoint.Host = thisVMIP
+			disgoConfig.GrpcEndpoint.Host = thisVMIP
 
 			replaceConfigFileOnVM(vmName, disgoConfig)
 
