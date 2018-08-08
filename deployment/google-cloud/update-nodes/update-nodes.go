@@ -50,7 +50,7 @@ func main() {
 			gologM.NewMultiLogger(
 				[]gologC.Logger{
 					gologP.NewConsoleLogger(),
-					// gologP.NewFileLogger("deploy.log"),
+					gologP.NewFileLogger("update.log"),
 				},
 			),
 		),
@@ -69,7 +69,7 @@ func main() {
 		Tags:             "disgo-node",
 		NamePrefix:       NamePrefix + "-seed",
 		ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment/google-cloud",
-		ScriptConfigFile: "vm-debian9-configure.sh",
+		ScriptConfigFile: "vm-debian9-update.sh",
 		CodeBranch:       "dev",
 	}
 
@@ -92,7 +92,7 @@ func main() {
 	seedVMConfig := defaultVMConfig
 	seedVMConfig.NamePrefix = NamePrefix + "-seed"
 
-	createVMs(SeedsCount, &seedVMConfig, &defaultNodeConfig)
+	updateVMs(SeedsCount, &seedVMConfig, &defaultNodeConfig)
 
 	var seedEndpoints = getEndpoints(SeedsCount, NamePrefix+"-seed")
 
@@ -103,7 +103,7 @@ func main() {
 	delegateConfig := defaultNodeConfig
 	delegateConfig.SeedEndpoints = seedEndpoints
 
-	createVMs(DelegatesCount, &delegateVMConfig, &delegateConfig)
+	updateVMs(DelegatesCount, &delegateVMConfig, &delegateConfig)
 
 	// Create NODE VMs
 	nodeVMConfig := defaultVMConfig
@@ -112,7 +112,7 @@ func main() {
 	delegateNodeConfig := defaultNodeConfig
 	delegateNodeConfig.SeedEndpoints = seedEndpoints
 
-	createVMs(NodesCount, &nodeVMConfig, &delegateNodeConfig)
+	updateVMs(NodesCount, &nodeVMConfig, &delegateNodeConfig)
 
 	(inmemoryLogger.(*gologM.InmemoryLogger)).Flush()
 }
@@ -138,21 +138,11 @@ func getOSE() string {
 	return ose
 }
 
-func createVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
+func updateVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 	var wg sync.WaitGroup
 
 	for i := 0; i < count; i++ {
 		var vmName = fmt.Sprintf("%s-%d", vmConfig.NamePrefix, i)
-
-		// Command to CREATE new VM Instance
-		var createVM = fmt.Sprintf(
-			"gcloud compute instances create %s --image-project %s --image-family %s --machine-type %s --tags %s",
-			vmName,
-			vmConfig.ImageProject,
-			vmConfig.ImageFamily,
-			vmConfig.MachineType,
-			vmConfig.Tags,
-		)
 
 		// Command to DOWNLOAD BASH scripts to the newly created VM
 		var downloadScriptFiles = fmt.Sprintf(
@@ -176,7 +166,7 @@ func createVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 		wg.Add(1)
 		go func(vritualMachineName string, disgoConfig *types.Config, cmds ...string) {
 			logger.Instance().LogInfo(vritualMachineName, 0, "~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~")
-			logger.Instance().LogInfo(vritualMachineName, 0, "DEPLOY START")
+			logger.Instance().LogInfo(vritualMachineName, 0, "UPDATE START")
 
 			for _, cmd := range cmds {
 				logger.Instance().LogInfo(vritualMachineName, 4, cmd)
@@ -190,7 +180,7 @@ func createVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 			replaceConfigFileOnVM(vritualMachineName, disgoConfig)
 
 			wg.Done()
-		}(vmName, nodeConfig, createVM, downloadScriptFiles, execScript)
+		}(vmName, nodeConfig, downloadScriptFiles, execScript)
 	}
 
 	wg.Wait()
