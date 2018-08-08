@@ -47,6 +47,7 @@ func generateOneTx() (*types.Transaction, error) {
 		privateKey,
 		from,
 		code,
+		"",
 		theTime,
 	)
 }
