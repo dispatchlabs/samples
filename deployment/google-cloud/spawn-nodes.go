@@ -24,7 +24,7 @@ const DelegatesCount = 3
 const NodesCount = 0
 
 // NamePrefix - VM name prefix
-const NamePrefix = "test-nicolae"
+const NamePrefix = "test-dg-741"
 
 // VMConfig - config for a VM in Google Cloud
 type VMConfig struct {

@@ -42,6 +42,7 @@ echo '[Service]'						| sudo tee --append /etc/systemd/system/dispatch-disgo-nod
 echo 'WorkingDirectory=/go-binaries'	| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
 echo 'ExecStart=/go-binaries/disgo'		| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
 echo 'Restart=on-failure'				| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
+echo 'RestartSec=5'						| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
 echo 'User=dispatch-services'			| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
 echo 'Group=dispatch-services'			| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
 echo '[Install]'						| sudo tee --append /etc/systemd/system/dispatch-disgo-node.service
