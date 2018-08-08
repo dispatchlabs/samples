@@ -45,7 +45,7 @@ func main() {
 		MachineType:      "n1-standard-2",
 		Tags:             "disgo-node",
 		NamePrefix:       NamePrefix + "-seed",
-		ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/google-cloud-spawn-vms",
+		ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment/google-cloud",
 		ScriptConfigFile: "vm-debian9-configure.sh",
 		CodeBranch:       "dev",
 	}
