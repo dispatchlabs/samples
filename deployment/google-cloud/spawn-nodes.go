@@ -12,13 +12,18 @@ import (
 	"sync"
 
 	"github.com/dispatchlabs/disgo/commons/types"
+
+	logger "github.com/nic0lae/golog"
+	gologC "github.com/nic0lae/golog/contracts"
+	gologM "github.com/nic0lae/golog/modifiers"
+	gologP "github.com/nic0lae/golog/persisters"
 )
 
 // SeedsCount - nr of SEED(s) to spawn
 const SeedsCount = 1
 
 // DelegatesCount - nr of DELEGATE(s) to spawn
-const DelegatesCount = 3
+const DelegatesCount = 1
 
 // NodesCount - nr of NODE(s) to spawn
 const NodesCount = 0
@@ -39,6 +44,24 @@ type VMConfig struct {
 }
 
 func main() {
+	// Config Logger
+	var inmemoryLogger = gologM.NewInmemoryLogger(
+		gologM.NewSimpleFormatterLogger(
+			gologM.NewMultiLogger(
+				[]gologC.Logger{
+					gologP.NewConsoleLogger(),
+					// gologP.NewFileLogger("deploy.log"),
+				},
+			),
+		),
+	)
+	logger.StoreSingleton(
+		logger.NewLogger(
+			inmemoryLogger,
+		),
+	)
+
+	// Set defaults
 	var defaultVMConfig = VMConfig{
 		ImageProject:     "debian-cloud",
 		ImageFamily:      "debian-9",
@@ -90,6 +113,8 @@ func main() {
 	delegateNodeConfig.SeedEndpoints = seedEndpoints
 
 	createVMs(NodesCount, &nodeVMConfig, &delegateNodeConfig)
+
+	(inmemoryLogger.(*gologM.InmemoryLogger)).Flush()
 }
 
 // Get the underlying OS command shell
@@ -149,37 +174,20 @@ func createVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 		// RUN VM creation in PARALLEL
 		// Run COMMANDS inside the VM in SEQUENTIAL order
 		wg.Add(1)
-		go func(vmName string, disgoConfig *types.Config, cmds ...string) {
+		go func(vritualMachineName string, disgoConfig *types.Config, cmds ...string) {
+			logger.Instance().LogInfo(vritualMachineName, 0, "~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~")
+			logger.Instance().LogInfo(vritualMachineName, 0, "DEPLOY START")
 
 			for _, cmd := range cmds {
-				fmt.Println(fmt.Sprintf("RUN -> %s", cmd))
+				logger.Instance().LogInfo(vritualMachineName, 4, cmd)
 				exec.Command(getOSC(), getOSE(), cmd).Run()
 			}
 
-			var thisVMIP = getVMIP(vmName)
+			var thisVMIP = getVMIP(vritualMachineName)
 			disgoConfig.HttpEndpoint.Host = thisVMIP
 			disgoConfig.GrpcEndpoint.Host = thisVMIP
 
-			replaceConfigFileOnVM(vmName, disgoConfig)
-
-			// // Save JSON config to a temp file then upload that file to the VM
-			// var configFileName = randString(20) + ".json"
-			// file, error := os.Create(configFileName)
-			// if error == nil {
-			// 	bytes, error := json.Marshal(&disgoConfig)
-			// 	if error == nil {
-			// 		fmt.Fprintf(file, string(bytes))
-			// 		file.Close()
-
-			// 		var fullFileName, _ = filepath.Abs(configFileName)
-
-			// 		exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)).Run()
-			// 		exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)).Run()
-			// 		exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)).Run()
-
-			// 		os.Remove(configFileName)
-			// 	}
-			// }
+			replaceConfigFileOnVM(vritualMachineName, disgoConfig)
 
 			wg.Done()
 		}(vmName, nodeConfig, createVM, downloadScriptFiles, execScript)
@@ -241,9 +249,17 @@ func replaceConfigFileOnVM(vmName string, disgoConfig *types.Config) {
 			var fullFileName, _ = filepath.Abs(configFileName)
 
 			// Upload temp file to the VM
-			exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)).Run()
-			exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)).Run()
-			exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)).Run()
+			var cmd1 = fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)
+			var cmd2 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)
+			var cmd3 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)
+
+			logger.Instance().LogInfo(vmName, 4, cmd1)
+			logger.Instance().LogInfo(vmName, 4, cmd2)
+			logger.Instance().LogInfo(vmName, 4, cmd3)
+
+			exec.Command(getOSC(), getOSE(), cmd1).Run()
+			exec.Command(getOSC(), getOSE(), cmd2).Run()
+			exec.Command(getOSC(), getOSE(), cmd3).Run()
 
 			// Remove temp file
 			os.Remove(configFileName)
