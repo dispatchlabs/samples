@@ -151,34 +151,33 @@ func createVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 		wg.Add(1)
 		go func(vmName string, disgoConfig *types.Config, cmds ...string) {
 
-			osc := getOSC()
-			ose := getOSE()
-
 			for _, cmd := range cmds {
 				fmt.Println(fmt.Sprintf("RUN -> %s", cmd))
-				exec.Command(osc, ose, cmd).Run()
+				exec.Command(getOSC(), getOSE(), cmd).Run()
 			}
 
 			disgoConfig.GrpcEndpoint.Host = getVMIP(vmName)
 
-			// Save JSON config to a temp file then upload that file to the VM
-			var configFileName = randString(20) + ".json"
-			file, error := os.Create(configFileName)
-			if error == nil {
-				bytes, error := json.Marshal(&disgoConfig)
-				if error == nil {
-					fmt.Fprintf(file, string(bytes))
-					file.Close()
+			replaceConfigFileOnVM(vmName, disgoConfig)
 
-					var fullFileName, _ = filepath.Abs(configFileName)
+			// // Save JSON config to a temp file then upload that file to the VM
+			// var configFileName = randString(20) + ".json"
+			// file, error := os.Create(configFileName)
+			// if error == nil {
+			// 	bytes, error := json.Marshal(&disgoConfig)
+			// 	if error == nil {
+			// 		fmt.Fprintf(file, string(bytes))
+			// 		file.Close()
 
-					exec.Command(osc, ose, fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)).Run()
-					exec.Command(osc, ose, fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)).Run()
-					exec.Command(osc, ose, fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)).Run()
+			// 		var fullFileName, _ = filepath.Abs(configFileName)
 
-					os.Remove(configFileName)
-				}
-			}
+			// 		exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)).Run()
+			// 		exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)).Run()
+			// 		exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)).Run()
+
+			// 		os.Remove(configFileName)
+			// 	}
+			// }
 
 			wg.Done()
 		}(vmName, nodeConfig, createVM, downloadScriptFiles, execScript)
@@ -225,4 +224,27 @@ func randString(n int) string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
+}
+
+func replaceConfigFileOnVM(vmName string, disgoConfig *types.Config) {
+	var configFileName = randString(20) + ".json"
+	file, error := os.Create(configFileName)
+	if error == nil {
+		bytes, error := json.Marshal(&disgoConfig)
+		if error == nil {
+			// Save JSON config to a temp file
+			fmt.Fprintf(file, string(bytes))
+			file.Close()
+
+			var fullFileName, _ = filepath.Abs(configFileName)
+
+			// Upload temp file to the VM
+			exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)).Run()
+			exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)).Run()
+			exec.Command(getOSC(), getOSE(), fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)).Run()
+
+			// Remove temp file
+			os.Remove(configFileName)
+		}
+	}
 }
