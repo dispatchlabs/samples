@@ -9,8 +9,8 @@ import (
 	"github.com/dispatchlabs/disgo/commons/utils"
 )
 
-var delay = time.Second
-var txCount = 1
+var delay = time.Millisecond * 20
+var txCount = 5000
 var txEndpoint = "http://localhost:1575/v1/transactions"
 var rcptEndpoint = "http://localhost:1575/v1/receipts"
 var queueEndpoint = "http://localhost:1575/v1/queue"
@@ -19,33 +19,47 @@ var queueTimeout = time.Second * 5
 
 func main() {
 	testMap = map[string]time.Time{}
+
+	//TransferTest()
+	//testBroken()
 	//runTransfers()
 
 	//contractAddress := deployContract()
-	//executeContract(contractAddress)
+	//fmt.Printf("\nContract Address: %s\n", contractAddress)
+	//executeContract(contractAddress, "arrayParam")
 
-	executeContract("99fe616864aa74e9c9ccd51f6bfe650e932a80c5")
+	//executeContract("7604548fef43108f9c00e3f9b3979f92772a63b6", "arrayParam")
+
+	sendGrpcTransactions()
+}
+
+func sendGrpcTransactions() {
+	var tx *types.Transaction
+
+	for i := 0; i < txCount; i++ {
+		tx = transfers.GetTransaction()
+		SendGrpcTransaction(tx)
+		time.Sleep(delay)
+	}
 }
 
 func deployContract() string {
 	var tx *types.Transaction
 	tx = transfers.GetNewDeployTx()
-	time.Sleep(3 * time.Second)
 	helper.PostTx(tx, txEndpoint)
 	deployHash := tx.Hash
 	time.Sleep(3 * time.Second)
 	deployRcpt := getReceipt(deployHash)
-	getReceipt(deployHash)
 	return deployRcpt.ContractAddress
 }
 
-func executeContract(contractAddress string) {
+func executeContract(contractAddress string, method string) {
 	var tx *types.Transaction
-	tx = transfers.GetNewExecuteTx(contractAddress)
+	tx = transfers.GetNewExecuteTx(contractAddress, method)
 
 	helper.PostTx(tx, txEndpoint)
 	time.Sleep(queueTimeout)
-	getReceipt(tx.Hash)
+	//getReceipt(tx.Hash)
 }
 
 
@@ -55,7 +69,7 @@ func getReceipt(hash string) *types.Receipt {
 		receipt := helper.GetReceipt(hash, rcptEndpoint)
 		fmt.Printf("Hash: %s\n%s\n", hash, receipt.ToPrettyJson())
 		if receipt.Status == "Pending" {
-			time.Sleep(time.Second * 2)
+			time.Sleep(time.Second * 5)
 		} else {
 			return receipt
 		}
@@ -73,7 +87,7 @@ func runTransfers() {
 	var tx *types.Transaction
 
 	for i := 0; i < txCount; i++ {
-		tx = transfers.GetTransaction(utils.ToMilliSeconds(time.Now()))
+		tx = transfers.GetTransaction()
 		//tx = transfers.GetRandomTransaction()
 		transactions = append(transactions, tx)
 		helper.AddTx(i+1, tx)
@@ -97,3 +111,18 @@ func runTransfers() {
 	helper.PrintTiming()
 }
 
+func TransferTest() {
+	var tx *types.Transaction
+
+	for i := 0; i < txCount; i++ {
+		tx = transfers.GetTransaction()
+		helper.PostTx(tx, txEndpoint)
+		time.Sleep(delay)
+	}
+}
+
+func testBroken() {
+	tx := transfers.GetNewBadDeployTx()
+	helper.PostTx(tx, txEndpoint)
+	getReceipt(tx.Hash)
+}
