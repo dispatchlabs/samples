@@ -32,3 +32,9 @@ rm -f -r db
 rm -f -r config
 rm -f disgo.log
 cp ~/go/src/github.com/dispatchlabs/disgo/disgo .
+
+cd ~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegate-5
+rm -f -r db
+rm -f -r config
+rm -f disgo.log
+cp ~/go/src/github.com/dispatchlabs/disgo/disgo .

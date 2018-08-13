@@ -24,7 +24,6 @@ type TestConfig struct {
 
 var genesisTransaction = `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`
 
-
 var Delegate_1 = &TestConfig{IsSeed: false, HttpEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1175}, GrpcEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1173}, GenesisTx: genesisTransaction}
 var Delegate_2 = &TestConfig{IsSeed: false, HttpEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1275}, GrpcEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1273}, GenesisTx: genesisTransaction}
 var Delegate_3 = &TestConfig{IsSeed: false, HttpEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1375}, GrpcEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1373}, GenesisTx: genesisTransaction}
@@ -33,25 +32,33 @@ var Seed = &TestConfig{IsSeed: true, HttpEndpoint: &types.Endpoint{Host: "127.0.
 
 var rootDir = "/Users/Bob/go/src/github.com/dispatchlabs/samples/run-nodes-locally"
 
-func SetUp() []*TestConfig {
+func SetUp(nbrDelegates int, startingPort int64) []*TestConfig {
+
 	nodeName := "seed"
 	dir := GetConfigDir(nodeName)
 	seedAccount := GetAccount(dir, nodeName)
 	fmt.Printf("\nSeed Account: %s\n", seedAccount.Address)
 	seedConfig := GetConfig(dir, Seed)
 
-	setupDelegate("delegate-1", seedAccount.Address, Delegate_1, seedConfig)
-	setupDelegate("delegate-2", seedAccount.Address, Delegate_2, seedConfig)
-	setupDelegate("delegate-3", seedAccount.Address, Delegate_3, seedConfig)
-	setupDelegate("delegate-4", seedAccount.Address, Delegate_4, seedConfig)
+	for i := 1; i <= nbrDelegates; i++ {
+		delegateName := fmt.Sprintf("delegate-%d", i)
+		startingPort++
+		grpcPort := startingPort
+		startingPort++
+		httpPort := startingPort
 
+		setupDelegate(delegateName, seedAccount.Address, httpPort, grpcPort, seedConfig)
+
+	}
 	fmt.Printf("%s\n %s\n", seedAccount.ToPrettyJson(), seedConfig.String())
 
 	configs := []*TestConfig{Delegate_1, Delegate_2, Delegate_3, Delegate_4}
 	return configs
 }
 
-func setupDelegate(delegateName, seedAddress string, delegateConfig *TestConfig, seedConfig *types.Config) {
+func setupDelegate(delegateName, seedAddress string, httpPort, grpcPort int64, seedConfig *types.Config) {
+	delegateConfig := &TestConfig{IsSeed: false, HttpEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: httpPort}, GrpcEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: grpcPort}, GenesisTx: genesisTransaction}
+
 	dir := GetConfigDir(delegateName)
 	GetAccount(dir, delegateName)
 	delegateConfig.SeedAddress = seedAddress

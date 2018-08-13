@@ -17,3 +17,6 @@ rm -f -r db
 
 cd ~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegate-4
 rm -f -r db
+
+cd ~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegate-5
+rm -f -r db

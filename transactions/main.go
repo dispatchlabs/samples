@@ -15,38 +15,56 @@ import (
 
 var delay = time.Millisecond * 20
 var txCount = 100
-var txEndpoint = "http://localhost:1575/v1/transactions"
-var rcptEndpoint = "http://localhost:1575/v1/receipts"
-var queueEndpoint = "http://localhost:1575/v1/queue"
+var txEndpoint = "http://localhost:3502/v1/transactions"
+var rcptEndpoint = "http://localhost:3502/v1/receipts"
+var queueEndpoint = "http://localhost:3502/v1/queue"
 var testMap map[string]time.Time
 var queueTimeout = time.Second * 5
+
 
 func main() {
 
 	arg := os.Args[1]
+
 	addressToUse := "d909e9b6e8909943a7a2783581451021584fdf11"
 	switch arg {
 	case "setup":
-		config.SetUp()
+		config.SetUp(5, 3500)
 	case "execute":
-		sendGrpcTransactions(addressToUse, 1173)
+		sendGrpcTransactions(addressToUse, 3501)
 		delegates, err := sdk.GetDelegates("localhost:1975")
 		if err != nil {
 			utils.Error(err)
 		}
+		//time.Sleep(time.Second * 10)
 		for _, delegate := range delegates {
 			account, err := sdk.GetAccount(delegate, addressToUse)
 			if err != nil {
 				utils.Error(err)
 			}
-			fmt.Printf("Account from Delegate: %s is \n%s\n", delegate.String(), account.ToPrettyJson())
+			if account == nil {
+				fmt.Printf("Account from Delegate: %s is not found yet\n", delegate.String())
+			} else {
+				fmt.Printf("Account from Delegate: %s is \n%s\n", delegate.String(), account.ToPrettyJson())
+			}
 		}
 	case "balance":
+
 		delegates, err := sdk.GetDelegates("localhost:1975")
 		if err != nil {
 			utils.Error(err)
 		}
-		for _, delegate := range delegates {
+		for index, delegate := range delegates {
+			if index == 1 {
+				txs, err := sdk.GetTransactionsReceived(delegate, addressToUse)
+				if err != nil {
+					utils.Error(err)
+				}
+				for _, tx := range txs {
+					receipt, _ := sdk.GetReceipt(delegate, tx.Hash)
+					fmt.Println(receipt.ToPrettyJson())
+				}
+			}
 			account, err := sdk.GetAccount(delegate, addressToUse)
 			if err != nil {
 				utils.Error(err)
