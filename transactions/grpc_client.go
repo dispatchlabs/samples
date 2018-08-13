@@ -13,9 +13,9 @@ import (
 	"fmt"
 )
 
-func SendGrpcTransaction(tx *types.Transaction) (*types.Gossip, error) {
-	grpcEndpoint := &types.Endpoint{Host: "localhost", Port: 1573}
-	node := types.Node{GrpcEndpoint: grpcEndpoint, Type: types.TypeDelegate, Address: "223adc682d3ba64c635ae105ce41d8d607167405"}
+func SendGrpcTransaction(tx *types.Transaction, grpcPort int64, address string) (*types.Gossip, error) {
+	grpcEndpoint := &types.Endpoint{Host: "localhost", Port: grpcPort}
+	node := types.Node{GrpcEndpoint: grpcEndpoint, Type: types.TypeDelegate, Address: address}
 
 	conn, err := grpc.Dial(fmt.Sprintf("%s:%d", node.GrpcEndpoint.Host, node.GrpcEndpoint.Port), grpc.WithInsecure())
 	if err != nil {

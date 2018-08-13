@@ -35,3 +35,4 @@ run-nodes-locally/seed/config/account.json
 run-nodes-locally/seed/config/key*
 run-nodes-locally/seed/db
 run-nodes-locally/seed/disgo
+*.log

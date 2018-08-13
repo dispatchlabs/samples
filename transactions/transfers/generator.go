@@ -11,12 +11,12 @@ import (
 
 var deployOccurred = false
 
-func GetRandomTransaction() *types.Transaction {
+func GetRandomTransaction(toAddress string) *types.Transaction {
 	value := utils.Random(1, 3)
 	var contractAddress string
 	switch value {
 	case 1:
-		return GetTransaction()
+		return GetTransaction(toAddress)
 	case 2:
 		//deployOccurred = true
 		return GetNewDeployTx()
@@ -30,7 +30,7 @@ func GetRandomTransaction() *types.Transaction {
 	return nil
 }
 
-func GetTransaction() *types.Transaction {
+func GetTransaction(toAddress string) *types.Transaction {
 	utils.Info("GetTransaction")
 	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
 	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
@@ -38,7 +38,7 @@ func GetTransaction() *types.Transaction {
 	var tx, _ = types.NewTransferTokensTransaction(
 		privateKey,
 		from,
-		"58bcd7823b1eac607788677e7be0da15493727d4",  //my delegate 3
+		toAddress,
 		1,
 		1,
 		utils.ToMilliSeconds(time.Now()),
