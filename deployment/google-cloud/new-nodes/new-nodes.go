@@ -118,6 +118,18 @@ func main() {
 	createNodeVMs(NodesCount, &nodeVMConfig, &delegateNodeConfig)
 
 	// Create Scandis VM
+	var scandisVMConfig = &VMConfig{
+		ImageProject:    "debian-cloud",
+		ImageFamily:     "debian-9",
+		MachineType:     "n1-standard-2",
+		Tags:            "default-allow-http, default-allow-https",
+		NamePrefix:      NamePrefix + "-scandis",
+		ScriptPrefixURL: "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
+		ScriptNewNode:   "vm-debian9-new-scandis.sh",
+		CodeBranch:      "dev",
+	}
+
+	createScandisVMs(scandisVMConfig, seedVMConfig.NamePrefix+"-0")
 
 	// Dump log
 	(inmemoryLogger.(*gologM.InmemoryLogger)).Flush()
@@ -202,7 +214,7 @@ func createNodeVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 	wg.Wait()
 }
 
-func createScandisVMs(vmConfig *VMConfig) {
+func createScandisVMs(vmConfig *VMConfig, seedVmName string) {
 	var wg sync.WaitGroup
 
 	// Command to CREATE new VM Instance
@@ -225,12 +237,14 @@ func createScandisVMs(vmConfig *VMConfig) {
 	)
 
 	// Commands to RUN scripts
+	var seedVMIP = getVMIP(seedVmName)
+
 	var execScript = fmt.Sprintf(
-		"gcloud compute ssh %s --command 'bash %s %s'",
+		"gcloud compute ssh %s --command 'bash %s %s %s:1975'",
 		vmConfig.NamePrefix,
 		vmConfig.ScriptNewScandis,
-		vmConfig.CodeBranch, // dev 35.227.186.171:1975
-
+		vmConfig.CodeBranch,
+		seedVMIP,
 	)
 
 	// RUN VM creation in PARALLEL
@@ -238,7 +252,7 @@ func createScandisVMs(vmConfig *VMConfig) {
 	wg.Add(1)
 	go func(vritualMachineName string, cmds ...string) {
 		logger.Instance().LogInfo(vritualMachineName, 0, "~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~")
-		logger.Instance().LogInfo(vritualMachineName, 0, "DEPLOY START")
+		logger.Instance().LogInfo(vritualMachineName, 0, "DEPLOY SCANDIS START")
 
 		for _, cmd := range cmds {
 			logger.Instance().LogInfo(vritualMachineName, 4, cmd)
