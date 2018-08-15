@@ -33,14 +33,17 @@ const NamePrefix = "test-dg-741"
 
 // VMConfig - config for a VM in Google Cloud
 type VMConfig struct {
-	ImageProject     string
-	ImageFamily      string
-	MachineType      string
-	Tags             string
-	NamePrefix       string
-	ScriptConfigURL  string
-	ScriptConfigFile string
-	CodeBranch       string
+	ImageProject        string
+	ImageFamily         string
+	MachineType         string
+	Tags                string
+	NamePrefix          string
+	ScriptPrefixURL     string
+	ScriptNewNode       string
+	ScriptUpdateNode    string
+	ScriptNewScandis    string
+	ScriptUpdateScandis string
+	CodeBranch          string
 }
 
 func main() {
@@ -50,7 +53,7 @@ func main() {
 			gologM.NewMultiLogger(
 				[]gologC.Logger{
 					gologP.NewConsoleLogger(),
-					gologP.NewFileLogger("deploy.log"),
+					gologP.NewFileLogger("new-nodes.log"),
 				},
 			),
 		),
@@ -63,14 +66,14 @@ func main() {
 
 	// Set defaults
 	var defaultVMConfig = VMConfig{
-		ImageProject:     "debian-cloud",
-		ImageFamily:      "debian-9",
-		MachineType:      "n1-standard-2",
-		Tags:             "disgo-node",
-		NamePrefix:       NamePrefix + "-seed",
-		ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment/google-cloud",
-		ScriptConfigFile: "vm-debian9-configure.sh",
-		CodeBranch:       "dev",
+		ImageProject:    "debian-cloud",
+		ImageFamily:     "debian-9",
+		MachineType:     "n1-standard-2",
+		Tags:            "disgo-node",
+		NamePrefix:      NamePrefix + "-seed",
+		ScriptPrefixURL: "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
+		ScriptNewNode:   "vm-debian9-new-node.sh",
+		CodeBranch:      "dev",
 	}
 
 	var defaultNodeConfig = types.Config{
@@ -92,7 +95,7 @@ func main() {
 	seedVMConfig := defaultVMConfig
 	seedVMConfig.NamePrefix = NamePrefix + "-seed"
 
-	createVMs(SeedsCount, &seedVMConfig, &defaultNodeConfig)
+	createNodeVMs(SeedsCount, &seedVMConfig, &defaultNodeConfig)
 
 	var seedEndpoints = getEndpoints(SeedsCount, NamePrefix+"-seed")
 
@@ -103,7 +106,7 @@ func main() {
 	delegateConfig := defaultNodeConfig
 	delegateConfig.SeedEndpoints = seedEndpoints
 
-	createVMs(DelegatesCount, &delegateVMConfig, &delegateConfig)
+	createNodeVMs(DelegatesCount, &delegateVMConfig, &delegateConfig)
 
 	// Create NODE VMs
 	nodeVMConfig := defaultVMConfig
@@ -112,8 +115,23 @@ func main() {
 	delegateNodeConfig := defaultNodeConfig
 	delegateNodeConfig.SeedEndpoints = seedEndpoints
 
-	createVMs(NodesCount, &nodeVMConfig, &delegateNodeConfig)
+	createNodeVMs(NodesCount, &nodeVMConfig, &delegateNodeConfig)
 
+	// Create Scandis VM
+	var scandisVMConfig = &VMConfig{
+		ImageProject:    "debian-cloud",
+		ImageFamily:     "debian-9",
+		MachineType:     "n1-standard-2",
+		Tags:            "default-allow-http, default-allow-https",
+		NamePrefix:      NamePrefix + "-scandis",
+		ScriptPrefixURL: "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
+		ScriptNewNode:   "vm-debian9-new-scandis.sh",
+		CodeBranch:      "dev",
+	}
+
+	createScandisVMs(scandisVMConfig, seedVMConfig.NamePrefix+"-0")
+
+	// Dump log
 	(inmemoryLogger.(*gologM.InmemoryLogger)).Flush()
 }
 
@@ -138,7 +156,7 @@ func getOSE() string {
 	return ose
 }
 
-func createVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
+func createNodeVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 	var wg sync.WaitGroup
 
 	for i := 0; i < count; i++ {
@@ -158,16 +176,16 @@ func createVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 		var downloadScriptFiles = fmt.Sprintf(
 			"gcloud compute ssh %s --command 'curl %s/%s -o %s'",
 			vmName,
-			vmConfig.ScriptConfigURL,
-			vmConfig.ScriptConfigFile,
-			vmConfig.ScriptConfigFile,
+			vmConfig.ScriptPrefixURL,
+			vmConfig.ScriptNewNode,
+			vmConfig.ScriptNewNode,
 		)
 
 		// Commands to RUN scripts
 		var execScript = fmt.Sprintf(
 			"gcloud compute ssh %s --command 'bash %s %s'",
 			vmName,
-			vmConfig.ScriptConfigFile,
+			vmConfig.ScriptNewNode,
 			vmConfig.CodeBranch,
 		)
 
@@ -192,6 +210,57 @@ func createVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 			wg.Done()
 		}(vmName, nodeConfig, createVM, downloadScriptFiles, execScript)
 	}
+
+	wg.Wait()
+}
+
+func createScandisVMs(vmConfig *VMConfig, seedVmName string) {
+	var wg sync.WaitGroup
+
+	// Command to CREATE new VM Instance
+	var createVM = fmt.Sprintf(
+		"gcloud compute instances create %s --image-project %s --image-family %s --machine-type %s --tags %s",
+		vmConfig.NamePrefix,
+		vmConfig.ImageProject,
+		vmConfig.ImageFamily,
+		vmConfig.MachineType,
+		vmConfig.Tags,
+	)
+
+	// Command to DOWNLOAD BASH scripts to the newly created VM
+	var downloadScriptFiles = fmt.Sprintf(
+		"gcloud compute ssh %s --command 'curl %s/%s -o %s'",
+		vmConfig.NamePrefix,
+		vmConfig.ScriptPrefixURL,
+		vmConfig.ScriptNewScandis,
+		vmConfig.ScriptNewScandis,
+	)
+
+	// Commands to RUN scripts
+	var seedVMIP = getVMIP(seedVmName)
+
+	var execScript = fmt.Sprintf(
+		"gcloud compute ssh %s --command 'bash %s %s %s:1975'",
+		vmConfig.NamePrefix,
+		vmConfig.ScriptNewScandis,
+		vmConfig.CodeBranch,
+		seedVMIP,
+	)
+
+	// RUN VM creation in PARALLEL
+	// Run COMMANDS inside the VM in SEQUENTIAL order
+	wg.Add(1)
+	go func(vritualMachineName string, cmds ...string) {
+		logger.Instance().LogInfo(vritualMachineName, 0, "~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~")
+		logger.Instance().LogInfo(vritualMachineName, 0, "DEPLOY SCANDIS START")
+
+		for _, cmd := range cmds {
+			logger.Instance().LogInfo(vritualMachineName, 4, cmd)
+			exec.Command(getOSC(), getOSE(), cmd).Run()
+		}
+
+		wg.Done()
+	}(vmConfig.NamePrefix, createVM, downloadScriptFiles, execScript)
 
 	wg.Wait()
 }
