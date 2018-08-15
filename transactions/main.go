@@ -2,18 +2,19 @@ package main
 
 import (
 	"fmt"
-	"github.com/dispatchlabs/disgo/commons/types"
-	"github.com/dispatchlabs/samples/transactions/transfers"
 	"time"
-	"github.com/dispatchlabs/samples/transactions/transfers/helper"
+
+	"github.com/dispatchlabs/disgo/commons/types"
 	"github.com/dispatchlabs/disgo/commons/utils"
+	"github.com/dispatchlabs/samples/transactions/transfers"
+	"github.com/dispatchlabs/samples/transactions/transfers/helper"
 )
 
 var delay = time.Second
 var txCount = 1
-var txEndpoint = "http://localhost:1575/v1/transactions"
-var rcptEndpoint = "http://localhost:1575/v1/receipts"
-var queueEndpoint = "http://localhost:1575/v1/queue"
+var txEndpoint = "http://localhost:1175/v1/transactions"
+var rcptEndpoint = "http://localhost:1175/v1/receipts"
+var queueEndpoint = "http://localhost:1175/v1/queue"
 var testMap map[string]time.Time
 var queueTimeout = time.Second * 5
 
@@ -21,10 +22,12 @@ func main() {
 	testMap = map[string]time.Time{}
 	//runTransfers()
 
-	//contractAddress := deployContract()
+	// contractAddress := deployContract()
+	// fmt.Println("ADDRESS: " + contractAddress)
+
 	//executeContract(contractAddress)
 
-	executeContract("99fe616864aa74e9c9ccd51f6bfe650e932a80c5")
+	executeContract("3dd4f2bd7427ebe4dafcdf4ffad2fb31db50fbd9")
 }
 
 func deployContract() string {
@@ -47,7 +50,6 @@ func executeContract(contractAddress string) {
 	time.Sleep(queueTimeout)
 	getReceipt(tx.Hash)
 }
-
 
 func getReceipt(hash string) *types.Receipt {
 	for {
@@ -77,7 +79,7 @@ func runTransfers() {
 		//tx = transfers.GetRandomTransaction()
 		transactions = append(transactions, tx)
 		helper.AddTx(i+1, tx)
-		time.Sleep(delay*2)
+		time.Sleep(delay * 2)
 	}
 
 	types.SortByTime(transactions, false)
@@ -96,4 +98,3 @@ func runTransfers() {
 	fmt.Println(fmt.Sprintf("TXes: %d, TOTAL Time: [%v] Nanoseconds\n\n", txCount, time.Since(startTime).Nanoseconds()))
 	helper.PrintTiming()
 }
-

@@ -1,0 +1,5 @@
+time="2018-08-15T09:12:15-07:00" level=info msg="[GetNewExecuteTx]" method="main/samples/transactions/transfers.GetNewExecuteTx()"
+time="2018-08-15T09:12:20-07:00" level=info msg="[Get Reciept]" method="main.getReceipt()"
+time="2018-08-15T09:12:22-07:00" level=info msg="[Get Reciept]" method="main.getReceipt()"
+me="2018-08-15T09:09:15-07:00" level=info msg="[Get Reciept]" method="main.getReceipt()"
+time="2018-08-15T09:09:15-07:00" level=info msg="[Get Reciept]" method="main.getReceipt()"
