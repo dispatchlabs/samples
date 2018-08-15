@@ -50,7 +50,7 @@ func main() {
 			gologM.NewMultiLogger(
 				[]gologC.Logger{
 					gologP.NewConsoleLogger(),
-					gologP.NewFileLogger("update.log"),
+					gologP.NewFileLogger("update-nodes.log"),
 				},
 			),
 		),
@@ -68,8 +68,8 @@ func main() {
 		MachineType:      "n1-standard-2",
 		Tags:             "disgo-node",
 		NamePrefix:       NamePrefix + "-seed",
-		ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment/google-cloud",
-		ScriptConfigFile: "vm-debian9-update.sh",
+		ScriptConfigURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
+		ScriptConfigFile: "vm-debian9-update-node.sh",
 		CodeBranch:       "dev",
 	}
 
@@ -114,6 +114,7 @@ func main() {
 
 	updateVMs(NodesCount, &nodeVMConfig, &delegateNodeConfig)
 
+	// Dump log
 	(inmemoryLogger.(*gologM.InmemoryLogger)).Flush()
 }
 
