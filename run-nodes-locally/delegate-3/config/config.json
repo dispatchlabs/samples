@@ -8,6 +8,9 @@
 		"port": 1373
 	},
 	"grpcTimeout": 5,
+	"seedAddresses": [
+		"3276724808616917e81f69c5fb0b7eb3d5f49065"
+	],
 	"seedEndpoints": [
 		{
 			"host": "127.0.0.1",
