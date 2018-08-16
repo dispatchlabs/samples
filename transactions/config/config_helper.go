@@ -10,6 +10,8 @@ import (
 	"encoding/hex"
 	"math/big"
 	"time"
+	"os/user"
+	"log"
 )
 
 type TestConfig struct {
@@ -30,10 +32,7 @@ var Delegate_3 = &TestConfig{IsSeed: false, HttpEndpoint: &types.Endpoint{Host: 
 var Delegate_4 = &TestConfig{IsSeed: false, HttpEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1475}, GrpcEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1473}, GenesisTx: genesisTransaction}
 var Seed = &TestConfig{IsSeed: true, HttpEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1975}, GrpcEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1973}, GenesisTx: genesisTransaction}
 
-var rootDir = "~/go/src/github.com/dispatchlabs/samples/run-nodes-locally"
-
 func SetUp(nbrDelegates int, startingPort int64) []*TestConfig {
-
 	nodeName := "seed"
 	dir := GetConfigDir(nodeName)
 	seedAccount := GetAccount(dir, nodeName)
@@ -67,6 +66,13 @@ func setupDelegate(delegateName, seedAddress string, httpPort, grpcPort int64, s
 }
 
 func GetConfigDir(nodeName string) string {
+	usr, err := user.Current()
+	if err != nil {
+		log.Fatal( err )
+	}
+
+	rootDir := usr.HomeDir + "/go/src/github.com/dispatchlabs/samples/run-nodes-locally"
+
 	directoryName := rootDir + string(os.PathSeparator) + nodeName + string(os.PathSeparator) + "config"
 	if !utils.Exists(directoryName) {
 		err := os.MkdirAll(directoryName, 0755)

@@ -15,7 +15,7 @@ import (
 )
 
 var delay = time.Millisecond * 20
-var txCount = 3000
+var txCount = 1500
 var queueEndpoint = "/v1/queue"
 var testMap map[string]time.Time
 var queueTimeout = time.Second * 5
@@ -25,12 +25,12 @@ func main() {
 
 	arg := os.Args[1]
 
-	addressToUse := "d909e9b6e8909943a7a2783581451021584fdf11"
+	addressToUse := "6ef9fdf451cba79d48097c30dd5796fad17c5ec6"
 	switch arg {
 	case "setup":
 		config.SetUp(5, 3500)
 	case "execute":
-		sendGrpcTransactions(addressToUse, 3501)
+		sendGrpcTransactions(addressToUse)
 		delegates, err := sdk.GetDelegates("localhost:1975")
 		if err != nil {
 			utils.Error(err)
@@ -106,12 +106,12 @@ func Startup() {
 }
 
 
-func sendGrpcTransactions(toAddress string, grpcPort int64) {
+func sendGrpcTransactions(toAddress string) {
 	var tx *types.Transaction
 
 	for i := 0; i < txCount; i++ {
 		tx = transfers.GetTransaction(toAddress)
-		SendGrpcTransaction(tx, grpcPort, toAddress)
+		SendGrpcTransaction(tx, getRandomDelegate().GrpcEndpoint, toAddress)
 		time.Sleep(delay)
 	}
 }
@@ -149,15 +149,21 @@ func getReceipt(hash string) *types.Receipt {
 	}
 }
 
-func getRandomDelegateURL(endpoint string) (string) {
+func getRandomDelegate() types.Node {
 	delegates, err := sdk.GetDelegates("localhost:1975")
 	if err != nil {
 		utils.Error(err)
 	}
-	if len(delegates) == 0 {
+	nbrDelegates := len(delegates)
+	if nbrDelegates == 0 {
 		utils.Fatal(errors.New("No Delegates were returned by the seed"))
 	}
-	url := fmt.Sprintf("http://localhost:%d/v1/%s", delegates[0].HttpEndpoint.Port, endpoint)
+	rand := utils.Random(0, nbrDelegates)
+	return delegates[rand]
+}
+
+func getRandomDelegateURL(endpoint string) (string) {
+	url := fmt.Sprintf("http://localhost:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
 	return url
 }
 
