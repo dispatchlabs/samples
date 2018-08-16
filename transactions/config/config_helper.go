@@ -30,7 +30,7 @@ var Delegate_3 = &TestConfig{IsSeed: false, HttpEndpoint: &types.Endpoint{Host: 
 var Delegate_4 = &TestConfig{IsSeed: false, HttpEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1475}, GrpcEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1473}, GenesisTx: genesisTransaction}
 var Seed = &TestConfig{IsSeed: true, HttpEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1975}, GrpcEndpoint: &types.Endpoint{Host: "127.0.0.1", Port: 1973}, GenesisTx: genesisTransaction}
 
-var rootDir = "/Users/Bob/go/src/github.com/dispatchlabs/samples/run-nodes-locally"
+var rootDir = "~/go/src/github.com/dispatchlabs/samples/run-nodes-locally"
 
 func SetUp(nbrDelegates int, startingPort int64) []*TestConfig {
 
