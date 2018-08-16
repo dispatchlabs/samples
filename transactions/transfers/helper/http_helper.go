@@ -65,6 +65,7 @@ func PostTx(tx *types.Transaction, endpoint string) {
 	)
 	if err != nil {
 		utils.Error(err)
+		return
 	}
 	contents, _ := ioutil.ReadAll(response.Body)
 	// If NOT then this happens https://stackoverflow.com/questions/37454236/net-http-server-too-many-open-files-error

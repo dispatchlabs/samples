@@ -11,13 +11,12 @@ import (
 	"os"
 	"github.com/dispatchlabs/samples/transactions/config"
 	"github.com/dispatchlabs/disgo/sdk"
+	"errors"
 )
 
 var delay = time.Millisecond * 20
-var txCount = 100
-var txEndpoint = "http://localhost:3502/v1/transactions"
-var rcptEndpoint = "http://localhost:3502/v1/receipts"
-var queueEndpoint = "http://localhost:3502/v1/queue"
+var txCount = 3000
+var queueEndpoint = "/v1/queue"
 var testMap map[string]time.Time
 var queueTimeout = time.Second * 5
 
@@ -54,37 +53,44 @@ func main() {
 		if err != nil {
 			utils.Error(err)
 		}
-		for index, delegate := range delegates {
-			if index == 1 {
-				txs, err := sdk.GetTransactionsReceived(delegate, addressToUse)
-				if err != nil {
-					utils.Error(err)
-				}
-				for _, tx := range txs {
-					receipt, _ := sdk.GetReceipt(delegate, tx.Hash)
-					fmt.Println(receipt.ToPrettyJson())
-				}
-			}
+		for _, delegate := range delegates {
+			//if index == 1 {
+			//	txs, err := sdk.GetTransactionsReceived(delegate, addressToUse)
+			//	if err != nil {
+			//		utils.Error(err)
+			//	}
+			//	for _, tx := range txs {
+			//		receipt, _ := sdk.GetReceipt(delegate, tx.Hash)
+			//		fmt.Println(receipt.ToPrettyJson())
+			//	}
+			//}
 			account, err := sdk.GetAccount(delegate, addressToUse)
 			if err != nil {
 				utils.Error(err)
+				continue
 			}
 			fmt.Printf("Account from Delegate: %s is \n%s\n", delegate.String(), account.ToPrettyJson())
 		}
+	case "deployContract":
+		contractAddress := deployContract()
+		fmt.Printf("\nContract Address: %s\n", contractAddress)
+	case "executeContract":
+		//executeContract("68500f38586234a98eaa98e2b9c5adf468494c55", "multiParams")
+		executeContract("cc763fe3e864e03d5786b89ec7319974209c5d3e", "arrayParam")
+	case "deployAndExecute":
+		contractAddress := deployContract()
+		fmt.Printf("\nContract Address: %s\n", contractAddress)
+		executeContract(contractAddress, "getVar5")
+	case "test":
+		TransferTest(addressToUse)
+		//testBroken()
+		//runTransfers()
+
 	default:
 		fmt.Errorf("Invalid argument %s\n", arg)
 	}
 	//testMap = map[string]time.Time{}
 
-	//TransferTest()
-	//testBroken()
-	//runTransfers()
-
-	//contractAddress := deployContract()
-	//fmt.Printf("\nContract Address: %s\n", contractAddress)
-	//executeContract(contractAddress, "arrayParam")
-
-	//executeContract("e6645f99688061161086cc2d442fa5ca51d9dc83", "arrayParam")
 }
 
 
@@ -113,7 +119,7 @@ func sendGrpcTransactions(toAddress string, grpcPort int64) {
 func deployContract() string {
 	var tx *types.Transaction
 	tx = transfers.GetNewDeployTx()
-	helper.PostTx(tx, txEndpoint)
+	helper.PostTx(tx, getRandomDelegateURL("transactions"))
 	deployHash := tx.Hash
 	time.Sleep(3 * time.Second)
 	deployRcpt := getReceipt(deployHash)
@@ -124,7 +130,7 @@ func executeContract(contractAddress string, method string) {
 	var tx *types.Transaction
 	tx = transfers.GetNewExecuteTx(contractAddress, method)
 
-	helper.PostTx(tx, txEndpoint)
+	helper.PostTx(tx, getRandomDelegateURL("transactions"))
 	time.Sleep(queueTimeout)
 	//getReceipt(tx.Hash)
 }
@@ -133,7 +139,7 @@ func executeContract(contractAddress string, method string) {
 func getReceipt(hash string) *types.Receipt {
 	for {
 		utils.Info("Get Reciept")
-		receipt := helper.GetReceipt(hash, rcptEndpoint)
+		receipt := helper.GetReceipt(hash, getRandomDelegateURL("receipts"))
 		fmt.Printf("Hash: %s\n%s\n", hash, receipt.ToPrettyJson())
 		if receipt.Status == "Pending" {
 			time.Sleep(time.Second * 5)
@@ -141,6 +147,18 @@ func getReceipt(hash string) *types.Receipt {
 			return receipt
 		}
 	}
+}
+
+func getRandomDelegateURL(endpoint string) (string) {
+	delegates, err := sdk.GetDelegates("localhost:1975")
+	if err != nil {
+		utils.Error(err)
+	}
+	if len(delegates) == 0 {
+		utils.Fatal(errors.New("No Delegates were returned by the seed"))
+	}
+	url := fmt.Sprintf("http://localhost:%d/v1/%s", delegates[0].HttpEndpoint.Port, endpoint)
+	return url
 }
 
 func runTransfers(toAddress string) {
@@ -162,7 +180,7 @@ func runTransfers(toAddress string) {
 
 	types.SortByTime(transactions, false)
 	for _, tx := range transactions {
-		helper.PostTx(tx, txEndpoint)
+		helper.PostTx(tx, getRandomDelegateURL("transactions"))
 		testMap[tx.Hash] = time.Now()
 	}
 	time.Sleep(time.Second)
@@ -182,13 +200,13 @@ func TransferTest(toAddress string) {
 
 	for i := 0; i < txCount; i++ {
 		tx = transfers.GetTransaction(toAddress)
-		helper.PostTx(tx, txEndpoint)
+		helper.PostTx(tx, getRandomDelegateURL("transactions"))
 		time.Sleep(delay)
 	}
 }
 
 func testBroken() {
 	tx := transfers.GetNewBadDeployTx()
-	helper.PostTx(tx, txEndpoint)
+	helper.PostTx(tx, getRandomDelegateURL("transactions"))
 	getReceipt(tx.Hash)
 }
