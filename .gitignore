@@ -36,3 +36,16 @@ run-nodes-locally/seed/config/key*
 run-nodes-locally/seed/db
 run-nodes-locally/seed/disgo
 *.log
+transactions/transactions
+run-nodes-locally/delegate-1/config/config.json
+run-nodes-locally/delegate-2/config/config.json
+run-nodes-locally/delegate-3/config/config.json
+run-nodes-locally/delegate-4/config/config.json
+run-nodes-locally/delegate-5/config/account.json
+run-nodes-locally/delegate-5/config/config.json
+run-nodes-locally/delegate-5/config/key
+run-nodes-locally/delegate-5/config/key.pem
+run-nodes-locally/delegate-5/config/key.pub
+run-nodes-locally/delegate-5/config/key.pub.pem
+run-nodes-locally/delegate-5/disgo
+run-nodes-locally/seed/config/config.json
