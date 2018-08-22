@@ -11,6 +11,8 @@ key.json
 LOCK
 MANIFEST
 
+run-nodes-locally/delegate*
+
 run-nodes-locally/delegate-1/config/account.json
 run-nodes-locally/delegate-1/config/key*
 run-nodes-locally/delegate-1/db
