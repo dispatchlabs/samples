@@ -20,16 +20,16 @@ import (
 )
 
 // SeedsCount - nr of SEED(s) to spawn
-const SeedsCount = 1
+const SeedsCount = 0
 
 // DelegatesCount - nr of DELEGATE(s) to spawn
-const DelegatesCount = 1
+const DelegatesCount = 0
 
 // NodesCount - nr of NODE(s) to spawn
 const NodesCount = 0
 
 // NamePrefix - VM name prefix
-const NamePrefix = "test-dg-741"
+const NamePrefix = "test-net-2-1"
 
 // VMConfig - config for a VM in Google Cloud
 type VMConfig struct {
@@ -64,6 +64,8 @@ func main() {
 		),
 	)
 
+	fmt.Println("Running, please wait...")
+
 	// Set defaults
 	var defaultVMConfig = VMConfig{
 		ImageProject:    "debian-cloud",
@@ -73,7 +75,7 @@ func main() {
 		NamePrefix:      NamePrefix + "-seed",
 		ScriptPrefixURL: "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
 		ScriptNewNode:   "vm-debian9-new-node.sh",
-		CodeBranch:      "dev",
+		CodeBranch:      "master",
 	}
 
 	var defaultNodeConfig = types.Config{
@@ -119,17 +121,19 @@ func main() {
 
 	// Create Scandis VM
 	var scandisVMConfig = &VMConfig{
-		ImageProject:    "debian-cloud",
-		ImageFamily:     "debian-9",
-		MachineType:     "n1-standard-2",
-		Tags:            "default-allow-http, default-allow-https",
-		NamePrefix:      NamePrefix + "-scandis",
-		ScriptPrefixURL: "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
-		ScriptNewNode:   "vm-debian9-new-scandis.sh",
-		CodeBranch:      "dev",
+		ImageProject:     "debian-cloud",
+		ImageFamily:      "debian-9",
+		MachineType:      "n1-standard-2",
+		Tags:             "http-server,https-server",
+		NamePrefix:       NamePrefix + "-scandis",
+		ScriptPrefixURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
+		ScriptNewScandis: "vm-debian9-new-scandis.sh",
+		CodeBranch:       "dev",
 	}
 
 	createScandisVMs(scandisVMConfig, seedVMConfig.NamePrefix+"-0")
+
+	fmt.Println("Done.")
 
 	// Dump log
 	(inmemoryLogger.(*gologM.InmemoryLogger)).Flush()
