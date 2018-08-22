@@ -3,9 +3,8 @@ package main
 import (
 	"fmt"
 	"github.com/dispatchlabs/disgo/commons/types"
-	"github.com/dispatchlabs/samples/transactions/transfers"
 	"time"
-	"github.com/dispatchlabs/samples/transactions/transfers/helper"
+	"github.com/dispatchlabs/samples/transactions/helper"
 	"github.com/dispatchlabs/disgo/commons/utils"
 	"github.com/dispatchlabs/samples/transactions/cli"
 	"os"
@@ -15,7 +14,7 @@ import (
 )
 
 var delay = time.Millisecond * 20
-var txCount = 1500
+var txCount = 1
 var queueEndpoint = "/v1/queue"
 var testMap map[string]time.Time
 var queueTimeout = time.Second * 5
@@ -25,11 +24,11 @@ func main() {
 
 	arg := os.Args[1]
 
-	addressToUse := "6ef9fdf451cba79d48097c30dd5796fad17c5ec6"
+	addressToUse := "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
 	switch arg {
 	case "setup":
 		config.SetUp(5, 3500)
-	case "execute":
+	case "execute", "test":
 		sendGrpcTransactions(addressToUse)
 		delegates, err := sdk.GetDelegates("localhost:1975")
 		if err != nil {
@@ -81,10 +80,6 @@ func main() {
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
 		executeContract(contractAddress, "getVar5")
-	case "test":
-		TransferTest(addressToUse)
-		//testBroken()
-		//runTransfers()
 
 	default:
 		fmt.Errorf("Invalid argument %s\n", arg)
@@ -110,7 +105,7 @@ func sendGrpcTransactions(toAddress string) {
 	var tx *types.Transaction
 
 	for i := 0; i < txCount; i++ {
-		tx = transfers.GetTransaction(toAddress)
+		tx = helper.GetTransaction(toAddress)
 		SendGrpcTransaction(tx, getRandomDelegate().GrpcEndpoint, toAddress)
 		time.Sleep(delay)
 	}
@@ -118,7 +113,7 @@ func sendGrpcTransactions(toAddress string) {
 
 func deployContract() string {
 	var tx *types.Transaction
-	tx = transfers.GetNewDeployTx()
+	tx = helper.GetNewDeployTx()
 	helper.PostTx(tx, getRandomDelegateURL("transactions"))
 	deployHash := tx.Hash
 	time.Sleep(3 * time.Second)
@@ -128,7 +123,7 @@ func deployContract() string {
 
 func executeContract(contractAddress string, method string) {
 	var tx *types.Transaction
-	tx = transfers.GetNewExecuteTx(contractAddress, method)
+	tx = helper.GetNewExecuteTx(contractAddress, method)
 
 	helper.PostTx(tx, getRandomDelegateURL("transactions"))
 	time.Sleep(queueTimeout)
@@ -177,7 +172,7 @@ func runTransfers(toAddress string) {
 	var tx *types.Transaction
 
 	for i := 0; i < txCount; i++ {
-		tx = transfers.GetTransaction("1501d68609a7b36238c0f9a89284b4f94560ef5e")
+		tx = helper.GetTransaction("1501d68609a7b36238c0f9a89284b4f94560ef5e")
 		//tx = transfers.GetRandomTransaction()
 		transactions = append(transactions, tx)
 		helper.AddTx(i+1, tx)
@@ -205,14 +200,14 @@ func TransferTest(toAddress string) {
 	var tx *types.Transaction
 
 	for i := 0; i < txCount; i++ {
-		tx = transfers.GetTransaction(toAddress)
+		tx = helper.GetTransaction(toAddress)
 		helper.PostTx(tx, getRandomDelegateURL("transactions"))
 		time.Sleep(delay)
 	}
 }
 
 func testBroken() {
-	tx := transfers.GetNewBadDeployTx()
+	tx := helper.GetNewBadDeployTx()
 	helper.PostTx(tx, getRandomDelegateURL("transactions"))
 	getReceipt(tx.Hash)
 }
