@@ -25,3 +25,6 @@ nohup ./disgo &
 cd ~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegate-5
 cp ~/go/src/github.com/dispatchlabs/disgo/disgo .
 nohup ./disgo &
+
+cd ~/go/src/github.com/dispatchlabs/samples/transactions
+./transactions execute

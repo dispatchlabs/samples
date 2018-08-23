@@ -13,7 +13,7 @@ import (
 	"errors"
 )
 
-var delay = time.Millisecond * 20
+var delay = time.Millisecond * 2
 var txCount = 1
 var queueEndpoint = "/v1/queue"
 var testMap map[string]time.Time
@@ -24,28 +24,31 @@ func main() {
 
 	arg := os.Args[1]
 
-	addressToUse := "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
+	addressToUse := "d7a6acf5f89cf2ca4d618b3a5aeeb3d3ef4e0572"
 	switch arg {
 	case "setup":
 		config.SetUp(5, 3500)
-	case "execute", "test":
+	case "execute":
 		sendGrpcTransactions(addressToUse)
-		delegates, err := sdk.GetDelegates("localhost:1975")
-		if err != nil {
-			utils.Error(err)
-		}
+		//delegates, err := sdk.GetDelegates("localhost:1975")
+		//if err != nil {
+		//	utils.Error(err)
+		//}
 		//time.Sleep(time.Second * 10)
-		for _, delegate := range delegates {
-			account, err := sdk.GetAccount(delegate, addressToUse)
-			if err != nil {
-				utils.Error(err)
-			}
-			if account == nil {
-				fmt.Printf("Account from Delegate: %s is not found yet\n", delegate.String())
-			} else {
-				fmt.Printf("Account from Delegate: %s is \n%s\n", delegate.String(), account.ToPrettyJson())
-			}
-		}
+		//for _, delegate := range delegates {
+		//	account, err := sdk.GetAccount(delegate, addressToUse)
+		//	if err != nil {
+		//		utils.Error(err)
+		//	}
+		//	if account == nil {
+		//		fmt.Printf("Account from Delegate: %s is not found yet\n", delegate.String())
+		//	} else {
+		//		fmt.Printf("Account from Delegate: %s is \n%s\n", delegate.String(), account.ToPrettyJson())
+		//	}
+		//}
+	case "executeHttp":
+		sendHttpTransactions(addressToUse)
+
 	case "balance":
 
 		delegates, err := sdk.GetDelegates("localhost:1975")
@@ -75,11 +78,11 @@ func main() {
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
 	case "executeContract":
 		//executeContract("68500f38586234a98eaa98e2b9c5adf468494c55", "multiParams")
-		executeContract("cc763fe3e864e03d5786b89ec7319974209c5d3e", "arrayParam")
-	case "deployAndExecute":
+		executeContract("f8e84ac2f4d70fbb84d9d33bac70e4da809ae29c", "hi")
+	case "deployAndExecute", "test":
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
-		executeContract(contractAddress, "getVar5")
+		executeContract(contractAddress, "plusOne")
 
 	default:
 		fmt.Errorf("Invalid argument %s\n", arg)
@@ -106,14 +109,30 @@ func sendGrpcTransactions(toAddress string) {
 
 	for i := 0; i < txCount; i++ {
 		tx = helper.GetTransaction(toAddress)
-		SendGrpcTransaction(tx, getRandomDelegate().GrpcEndpoint, toAddress)
+		gossipResponse, err := SendGrpcTransaction(tx, getRandomDelegate().GrpcEndpoint, toAddress)
+		if err != nil {
+			utils.Error(err)
+		} else {
+			fmt.Printf("grpc response: %v\n", gossipResponse)
+		}
 		time.Sleep(delay)
+	}
+}
+
+func sendHttpTransactions(toAddress string) {
+	var tx *types.Transaction
+
+	for i := 0; i < txCount; i++ {
+		tx = helper.GetTransaction(toAddress)
+		helper.PostTx(tx, getRandomDelegateURL("transactions"))
+		time.Sleep(delay)
+		getReceipt(tx.Hash)
 	}
 }
 
 func deployContract() string {
 	var tx *types.Transaction
-	tx = helper.GetNewDeployTx()
+	tx = helper.GetNewDaveDeployTx()
 	helper.PostTx(tx, getRandomDelegateURL("transactions"))
 	deployHash := tx.Hash
 	time.Sleep(3 * time.Second)
@@ -126,6 +145,8 @@ func executeContract(contractAddress string, method string) {
 	tx = helper.GetNewExecuteTx(contractAddress, method)
 
 	helper.PostTx(tx, getRandomDelegateURL("transactions"))
+
+	fmt.Printf("\n%s\n", tx.ToPrettyJson())
 	time.Sleep(queueTimeout)
 	//getReceipt(tx.Hash)
 }
@@ -158,7 +179,9 @@ func getRandomDelegate() types.Node {
 }
 
 func getRandomDelegateURL(endpoint string) (string) {
-	url := fmt.Sprintf("http://localhost:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
+	//url := fmt.Sprintf("http://localhost:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
+	//url := fmt.Sprintf("http://35.203.143.69:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
+	url := fmt.Sprintf("http://35.233.231.3:%d/v1/%s", 1975, endpoint)
 	return url
 }
 
@@ -172,8 +195,7 @@ func runTransfers(toAddress string) {
 	var tx *types.Transaction
 
 	for i := 0; i < txCount; i++ {
-		tx = helper.GetTransaction("1501d68609a7b36238c0f9a89284b4f94560ef5e")
-		//tx = transfers.GetRandomTransaction()
+		tx = helper.GetTransaction(toAddress)
 		transactions = append(transactions, tx)
 		helper.AddTx(i+1, tx)
 		time.Sleep(delay*2)
@@ -206,8 +228,8 @@ func TransferTest(toAddress string) {
 	}
 }
 
-func testBroken() {
-	tx := helper.GetNewBadDeployTx()
-	helper.PostTx(tx, getRandomDelegateURL("transactions"))
-	getReceipt(tx.Hash)
-}
+//func testBroken() {
+//	tx := helper.GetNewBadDeployTx()
+//	helper.PostTx(tx, getRandomDelegateURL("transactions"))
+//	getReceipt(tx.Hash)
+//}
