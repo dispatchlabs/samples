@@ -14,7 +14,7 @@ import (
 )
 
 var delay = time.Millisecond * 2
-var txCount = 1
+var txCount = 50
 var queueEndpoint = "/v1/queue"
 var testMap map[string]time.Time
 var queueTimeout = time.Second * 5
@@ -24,11 +24,11 @@ func main() {
 
 	arg := os.Args[1]
 
-	addressToUse := "d7a6acf5f89cf2ca4d618b3a5aeeb3d3ef4e0572"
+	addressToUse := "d7a6acf5f89cf2ca4d618b3a5aeeb3d3ef4e0573"
 	switch arg {
 	case "setup":
 		config.SetUp(5, 3500)
-	case "execute":
+	case "execute", "test":
 		sendGrpcTransactions(addressToUse)
 		//delegates, err := sdk.GetDelegates("localhost:1975")
 		//if err != nil {
@@ -79,7 +79,7 @@ func main() {
 	case "executeContract":
 		//executeContract("68500f38586234a98eaa98e2b9c5adf468494c55", "multiParams")
 		executeContract("f8e84ac2f4d70fbb84d9d33bac70e4da809ae29c", "hi")
-	case "deployAndExecute", "test":
+	case "deployAndExecute":
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
 		executeContract(contractAddress, "plusOne")
