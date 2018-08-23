@@ -1,16 +1,16 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"github.com/dispatchlabs/disgo/commons/types"
-	"time"
-	"github.com/dispatchlabs/samples/transactions/helper"
 	"github.com/dispatchlabs/disgo/commons/utils"
-	"github.com/dispatchlabs/samples/transactions/cli"
-	"os"
-	"github.com/dispatchlabs/samples/transactions/config"
 	"github.com/dispatchlabs/disgo/sdk"
-	"errors"
+	"github.com/dispatchlabs/samples/transactions/cli"
+	"github.com/dispatchlabs/samples/transactions/config"
+	"github.com/dispatchlabs/samples/transactions/helper"
+	"os"
+	"time"
 )
 
 var delay = time.Millisecond * 20
@@ -18,7 +18,6 @@ var txCount = 1
 var queueEndpoint = "/v1/queue"
 var testMap map[string]time.Time
 var queueTimeout = time.Second * 5
-
 
 func main() {
 
@@ -73,9 +72,19 @@ func main() {
 	case "deployContract":
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
+	case "deployContractFromFile":
+		contractAddress := deployContractFromFile(os.Args[2:])
+		fmt.Printf("\nContract Address: %s\n", contractAddress)
 	case "executeContract":
 		//executeContract("68500f38586234a98eaa98e2b9c5adf468494c55", "multiParams")
 		executeContract("cc763fe3e864e03d5786b89ec7319974209c5d3e", "arrayParam")
+	case "executeVarArgContract":
+		if len(os.Args) < 4 {
+			fmt.Println("executeVarArgContract must have at least 3 arguments\n")
+			break
+		}
+
+		executeVarArgContract(os.Args[2], os.Args[3], os.Args[4], os.Args[5:])
 	case "deployAndExecute":
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
@@ -88,8 +97,6 @@ func main() {
 
 }
 
-
-
 func Startup() {
 	cli.Exec("cd /Users/Bob/go/src/github.com/dispatchlabs/samples/run-nodes-locally/seed; ls -al; ./disgo")
 	//time.Sleep(time.Second * 3)
@@ -99,7 +106,6 @@ func Startup() {
 	//go cli.Exec("cd /Users/Bob/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegat-4; ls -al; ./disgo")
 	//time.Sleep(time.Minute)
 }
-
 
 func sendGrpcTransactions(toAddress string) {
 	var tx *types.Transaction
@@ -121,6 +127,21 @@ func deployContract() string {
 	return deployRcpt.ContractAddress
 }
 
+func deployContractFromFile(args []string) string {
+	if len(args) != 2 {
+		fmt.Println("deployContractFromFile needs a binary file (arg 1) and abi file (arg 2)")
+		return ""
+	}
+
+	var tx *types.Transaction
+	tx = helper.GetNewDeployTxFromFile(args[0], args[1])
+	helper.PostTx(tx, getRandomDelegateURL("transactions"))
+	deployHash := tx.Hash
+	time.Sleep(3 * time.Second)
+	deployRcpt := getReceipt(deployHash)
+	return deployRcpt.ContractAddress
+}
+
 func executeContract(contractAddress string, method string) {
 	var tx *types.Transaction
 	tx = helper.GetNewExecuteTx(contractAddress, method)
@@ -130,6 +151,19 @@ func executeContract(contractAddress string, method string) {
 	//getReceipt(tx.Hash)
 }
 
+func executeVarArgContract(contractAddress string, abi_file string, method string, args []string) {
+	fmt.Println(contractAddress)
+	fmt.Println(abi_file)
+	fmt.Println(method)
+	fmt.Println(args)
+
+	var tx *types.Transaction
+	tx = helper.GetNewExecuteTxWithVarableParams(contractAddress, abi_file, method, args)
+
+	helper.PostTx(tx, getRandomDelegateURL("transactions"))
+	time.Sleep(queueTimeout)
+	getReceipt(tx.Hash)
+}
 
 func getReceipt(hash string) *types.Receipt {
 	for {
@@ -157,7 +191,7 @@ func getRandomDelegate() types.Node {
 	return delegates[rand]
 }
 
-func getRandomDelegateURL(endpoint string) (string) {
+func getRandomDelegateURL(endpoint string) string {
 	url := fmt.Sprintf("http://localhost:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
 	return url
 }
@@ -176,7 +210,7 @@ func runTransfers(toAddress string) {
 		//tx = transfers.GetRandomTransaction()
 		transactions = append(transactions, tx)
 		helper.AddTx(i+1, tx)
-		time.Sleep(delay*2)
+		time.Sleep(delay * 2)
 	}
 
 	types.SortByTime(transactions, false)

@@ -1,8 +1,8 @@
 // Tests these opp codes
-//
 // ADD
+// ADDMOD
 // AND
-// BLOCKHASH
+// BALANCE
 // CALLDATACOPY
 // CALLDATALOAD
 // CALLDATASIZE
@@ -17,7 +17,6 @@
 // DUP6
 // EQ
 // EXP
-// GASLIMIT
 // GT
 // INVALID
 // ISZERO
@@ -26,8 +25,6 @@
 // JUMPI
 // KECCAK256
 // LOG1
-// LOG3
-// LOG4
 // LT
 // MLOAD
 // MOD
@@ -38,27 +35,29 @@
 // OR
 // POP
 // PUSH1
+// PUSH19
 // PUSH2
 // PUSH29
+// PUSH31
+// PUSH32
 // PUSH4
 // PUSH6
 // RETURN
-// RETURNDATACOPY
 // REVERT
 // SDIV
 // SGT
 // SLT
 // SMOD
-// STATICCALL
 // STOP
 // SUB
 // SWAP1
 // SWAP2
 // SWAP3
 // SWAP4
+// SWAP5
 // XOR
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.4.0;
 
 contract MathTest {
 				function add(uint x, uint y) public pure returns (uint) {
@@ -158,10 +157,10 @@ contract MathTest {
 								return mulmod(x, y, m);
 				}
 
-				/* unsuure how to call this 
-				function signextend(int i, uint x) public pure returns (uint) {
-								_;				
-				} */
+				/* this doesn't generate the right op code for some reason */
+				function signextend(int i, int x) public pure returns (int) {
+								x >> i;
+				} 
 
 				/* this is automatically executed when the contract is run
 				function keccak256(uint p, uint n) public pure returns (uint) {
@@ -172,5 +171,4 @@ contract MathTest {
 				function test_sha3(bytes b) public pure returns (bytes32) {
 								return sha3(b);
 				}
-
 }
