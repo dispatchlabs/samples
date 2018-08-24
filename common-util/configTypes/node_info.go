@@ -1,9 +1,10 @@
 package configTypes
 
 import (
+	"encoding/json"
 	"github.com/dispatchlabs/disgo/commons/utils"
-	"github.com/gin-gonic/gin/json"
 	"github.com/dispatchlabs/disgo/commons/types"
+
 )
 
 type NodeInfo struct {
