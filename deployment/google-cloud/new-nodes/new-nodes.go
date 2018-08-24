@@ -24,7 +24,7 @@ import (
 const SeedsCount = 1
 
 // DelegatesCount - nr of DELEGATE(s) to spawn
-const DelegatesCount = 2
+const DelegatesCount = 3
 
 // NamePrefix - VM name prefix
 const NamePrefix = "nicolae-testing"
@@ -55,7 +55,7 @@ type NodeConfigParams struct {
 }
 
 func main() {
-	configureLogging()
+	inmemoryLogger := configureLogging()
 	fmt.Println("Running, please wait...")
 
 	// 1. Create SEED VMs => NON configured seeds, but we have the VMs IPs
@@ -90,28 +90,32 @@ func main() {
 	// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
 	configSeedVMs(seedAddressToNodeConfigs, delegatesAccounts)
 
-	// 4. Create Scandis VM
-	// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
-	// var scandisVMConfig = &VMConfig{
-	// 	ImageProject:     "debian-cloud",
-	// 	ImageFamily:      "debian-9",
-	// 	MachineType:      "n1-standard-2",
-	// 	Tags:             "http-server,https-server",
-	// 	NamePrefix:       NamePrefix + "-scandis",
-	// 	ScriptPrefixURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
-	// 	ScriptNewScandis: "vm-debian9-new-scandis.sh",
-	// 	CodeBranch:       "dev",
-	// }
+	// 4. Stasrt SEEDs and Delegtes
+	for i := 0; i < SeedsCount; i++ {
+		var vmName = fmt.Sprintf("%s-%d", seedVMConfig.NamePrefix, i)
+		restartDisgoNodeOnVM(vmName)
+	}
+	for i := 0; i < DelegatesCount; i++ {
+		var vmName = fmt.Sprintf("%s-%d", delegateVMConfig.NamePrefix, i)
+		restartDisgoNodeOnVM(vmName)
+	}
 
-	// createScandisVMs(scandisVMConfig, seedVMConfig.NamePrefix+"-0")
+	// 5. Create Scandis VM
+	// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
+	scandisVMConfig := getDefaultVMConfig()
+	scandisVMConfig.Tags = "http-server,https-server"
+	scandisVMConfig.NamePrefix = NamePrefix + "-scandis"
+	scandisVMConfig.ScriptNewScandis = "vm-debian9-new-scandis.sh"
+
+	createScandisVMs(&scandisVMConfig, seedVMConfig.NamePrefix+"-0")
 
 	fmt.Println("Done.")
 
 	// Dump log
-	(golog.Instance().(*gologM.InmemoryLogger)).Flush()
+	(inmemoryLogger.(*gologM.InmemoryLogger)).Flush()
 }
 
-func configureLogging() {
+func configureLogging() gologC.Logger {
 	var inmemoryLogger = gologM.NewInmemoryLogger(
 		gologM.NewSimpleFormatterLogger(
 			gologM.NewMultiLogger(
@@ -122,11 +126,14 @@ func configureLogging() {
 			),
 		),
 	)
+
 	golog.StoreSingleton(
 		golog.NewLogger(
 			inmemoryLogger,
 		),
 	)
+
+	return inmemoryLogger
 }
 
 // Get the underlying OS command shell
@@ -300,11 +307,11 @@ func replaceConfigOnVM(vmName string, nodeConfigParams *NodeConfigParams) {
 	file1, err1 := os.Create(configFileName)
 	file2, err2 := os.Create(accountFileName)
 
-	if err1 == nil && err2 != nil {
+	if err1 == nil && err2 == nil {
 		bytes1, err1 := json.Marshal(nodeConfigParams.Config)
 		bytes2, err2 := json.Marshal(nodeConfigParams.Account)
 
-		if err1 == nil && err2 != nil {
+		if err1 == nil && err2 == nil {
 
 			// Save JSON config to a temp file
 			fmt.Fprintf(file1, string(bytes1))
@@ -323,25 +330,27 @@ func replaceConfigOnVM(vmName string, nodeConfigParams *NodeConfigParams) {
 			var cmd3 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)
 			var cmd4 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/account.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)
 
-			var cmd5 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)
-
 			golog.Instance().LogInfo(vmName, 4, cmd1)
 			golog.Instance().LogInfo(vmName, 4, cmd2)
 			golog.Instance().LogInfo(vmName, 4, cmd3)
 			golog.Instance().LogInfo(vmName, 4, cmd4)
-			golog.Instance().LogInfo(vmName, 4, cmd5)
 
 			exec.Command(getOSC(), getOSE(), cmd1).Run()
 			exec.Command(getOSC(), getOSE(), cmd2).Run()
 			exec.Command(getOSC(), getOSE(), cmd3).Run()
 			exec.Command(getOSC(), getOSE(), cmd4).Run()
-			exec.Command(getOSC(), getOSE(), cmd5).Run()
 
 			// Remove temp file
-			os.Remove(configFileName)
-			os.Remove(accountFileName)
+			os.Remove(fullFileName1)
+			os.Remove(fullFileName2)
 		}
 	}
+}
+
+func restartDisgoNodeOnVM(vmName string) {
+	var cmd1 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)
+	golog.Instance().LogInfo(vmName, 4, cmd1)
+	exec.Command(getOSC(), getOSE(), cmd1).Run()
 }
 
 func fetchSeedsVMsMappings(seedNamePrefix string, seedCount int, seedsAccounts []*types.Account) map[string]*NodeConfigParams {
