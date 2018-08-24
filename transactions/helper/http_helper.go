@@ -54,6 +54,7 @@ func GetQueue(endpoint string) string {
 }
 
 func PostTx(tx *types.Transaction, endpoint string) {
+	fmt.Printf("Executing contract json: \n%s\n", tx.ToPrettyJson())
 	fmt.Printf("Sending tx : %s with timestamp: %v\n", tx.Hash, tx.ToTime())
 	data := new(bytes.Buffer)
 	data.WriteString(tx.String())
