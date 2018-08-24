@@ -1,53 +1,23 @@
-package config
+package configHelpers
 
 import (
+	"encoding/hex"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"math/big"
+	"os"
+	"os/user"
+	"time"
+
+	"github.com/dispatchlabs/disgo/commons/crypto"
 	"github.com/dispatchlabs/disgo/commons/types"
 	"github.com/dispatchlabs/disgo/commons/utils"
-	"os"
-	"io/ioutil"
-	"github.com/dispatchlabs/disgo/commons/crypto"
-	"encoding/hex"
-	"math/big"
-	"time"
-	"os/user"
-	"log"
-	"github.com/dispatchlabs/samples/common-util/configTypes"
 )
 
-var genesisTransaction = `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`
-
-func CreateSeedAccount() *types.Account {
-	return CreateAccount("seed")
-}
-
-func CreateDelegateAccount(delegateName string) *types.Account {
-	return CreateAccount(delegateName)
-}
-
-func GetSeedConfig(ipAddress string, httpPort, grpcPort int64, seedAccount *types.Account) *types.Config {
-	nodeName := "seed"
-
-	configInstance := &types.Config{
-		HttpEndpoint:       &types.Endpoint{Host: ipAddress, Port: httpPort},
-		GrpcEndpoint:       &types.Endpoint{Host: ipAddress, Port: grpcPort},
-		LocalHttpApiPort:   0,
-		DelegateAddresses:  []string{},
-		GrpcTimeout:        5,
-		GenesisTransaction: genesisTransaction,
-	}
-	seeds := []*types.Node{
-		{
-			GrpcEndpoint: configInstance.GrpcEndpoint,
-			HttpEndpoint: configInstance.HttpEndpoint,
-		},
-	}
-	configInstance.Seeds = seeds
-	SaveConfig(nodeName, configInstance)
-	configInstance.Seeds[0].Address = seedAccount.Address
-	return configInstance
-}
-
+// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
+// Account
+// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
 func CreateAccount(nodeName string) *types.Account {
 	publicKey, privateKey := crypto.GenerateKeyPair()
 	address := crypto.ToAddress(publicKey)
@@ -64,28 +34,51 @@ func CreateAccount(nodeName string) *types.Account {
 	return account
 }
 
+// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
+// Config -
+// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
+func GetSeedConfig(ipAddress string, httpPort, grpcPort int64, seedAccounts []*types.Account) *types.Config {
+	configInstance := types.GetDefaultConfig()
 
-func GetDelegateConfig(ipAddress string, httpPort, grpcPort int64, seedNodes []*types.Node) *types.Config {
+	configInstance.HttpEndpoint = &types.Endpoint{Host: ipAddress, Port: httpPort}
+	configInstance.GrpcEndpoint = &types.Endpoint{Host: ipAddress, Port: grpcPort}
 
-	configInstance := &types.Config{
-		HttpEndpoint:       &types.Endpoint{Host: ipAddress, Port: httpPort},
-		GrpcEndpoint:       &types.Endpoint{Host: ipAddress, Port: grpcPort},
-		LocalHttpApiPort:   0,
-		GrpcTimeout:        5,
-		GenesisTransaction: genesisTransaction,
-		Seeds:				seedNodes,
-		IsBookkeeper:       true,
-
+	seeds := []*types.Node{}
+	for i := 0; i < len(seedAccounts); i++ {
+		seeds = append(seeds, &types.Node{
+			Address:      seedAccounts[i].Address,
+			GrpcEndpoint: configInstance.GrpcEndpoint,
+			HttpEndpoint: configInstance.HttpEndpoint,
+		})
 	}
+
+	configInstance.Seeds = seeds
 	return configInstance
 }
 
+func GetSeedConfigAndSave(ipAddress string, httpPort, grpcPort int64, seedAccount []*types.Account) *types.Config {
+	nodeName := "seed"
+	seedConfig := GetSeedConfig(ipAddress, httpPort, grpcPort, seedAccount)
+	SaveConfig(nodeName, seedConfig)
 
-func GetNewRemoteConfigs(seedNode *configTypes.NodeInfo, delegateNodes []*configTypes.NodeInfo) map[string]*configTypes.NodeInfo {
-	configMap := map[string]*configTypes.NodeInfo{}
+	return seedConfig
+}
 
-	seedAccount := CreateSeedAccount();
-	seedConfig := GetSeedConfig(seedNode.Host, seedNode.HttpPort, seedNode.GrpcPort, seedAccount)
+func GetDelegateConfig(ipAddress string, httpPort, grpcPort int64, seedNodes []*types.Node) *types.Config {
+	configInstance := types.GetDefaultConfig()
+
+	configInstance.HttpEndpoint = &types.Endpoint{Host: ipAddress, Port: httpPort}
+	configInstance.GrpcEndpoint = &types.Endpoint{Host: ipAddress, Port: grpcPort}
+	configInstance.Seeds = seedNodes
+
+	return configInstance
+}
+
+func GetNewRemoteConfigs(seedNode *NodeInfo, delegateNodes []*NodeInfo) map[string]*NodeInfo {
+	configMap := map[string]*NodeInfo{}
+
+	seedAccount := CreateAccount("seed")
+	seedConfig := GetSeedConfig(seedNode.Host, seedNode.HttpPort, seedNode.GrpcPort, []*types.Account{seedAccount})
 	seedNode.Account = seedAccount
 	seedNode.Config = seedConfig
 	configMap["seed"] = seedNode
@@ -93,7 +86,7 @@ func GetNewRemoteConfigs(seedNode *configTypes.NodeInfo, delegateNodes []*config
 	delegateAddressList := make([]string, len(delegateNodes))
 	for i := 0; i < len(delegateNodes); i++ {
 		delegateNodes[i].Config = GetDelegateConfig(delegateNodes[i].Host, delegateNodes[i].HttpPort, delegateNodes[i].GrpcPort, seedConfig.Seeds)
-		delegateNodes[i].Account = CreateDelegateAccount(delegateNodes[i].Name)
+		delegateNodes[i].Account = CreateAccount(delegateNodes[i].Name)
 
 		delegateAddressList[i] = delegateNodes[i].Account.Address
 
@@ -103,13 +96,10 @@ func GetNewRemoteConfigs(seedNode *configTypes.NodeInfo, delegateNodes []*config
 	return configMap
 }
 
-
-
-
 func GetConfigDir(nodeName string) string {
 	usr, err := user.Current()
 	if err != nil {
-		log.Fatal( err )
+		log.Fatal(err)
 	}
 	rootDir := usr.HomeDir + "/go/src/github.com/dispatchlabs/samples/run-nodes-locally"
 
@@ -161,7 +151,6 @@ func writeAccount(dirName string, account *types.Account) error {
 	}
 	fmt.Fprintf(file, account.ToPrettyJson())
 
-
 	return nil
 }
 
@@ -192,4 +181,3 @@ func SaveConfig(nodeName string, newConfig *types.Config) *types.Config {
 func newEndpoint(port int64) *types.Endpoint {
 	return &types.Endpoint{Host: "127.0.0.1", Port: port}
 }
-

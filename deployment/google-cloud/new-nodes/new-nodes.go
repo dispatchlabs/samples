@@ -12,24 +12,25 @@ import (
 	"sync"
 
 	"github.com/dispatchlabs/disgo/commons/types"
+	"github.com/dispatchlabs/samples/common-util/config-helpers"
 
-	logger "github.com/nic0lae/golog"
+	golog "github.com/nic0lae/golog"
 	gologC "github.com/nic0lae/golog/contracts"
 	gologM "github.com/nic0lae/golog/modifiers"
 	gologP "github.com/nic0lae/golog/persisters"
 )
 
 // SeedsCount - nr of SEED(s) to spawn
-const SeedsCount = 0
+const SeedsCount = 1
 
 // DelegatesCount - nr of DELEGATE(s) to spawn
-const DelegatesCount = 0
-
-// NodesCount - nr of NODE(s) to spawn
-const NodesCount = 0
+const DelegatesCount = 2
 
 // NamePrefix - VM name prefix
-const NamePrefix = "test-net-2-1"
+const NamePrefix = "nicolae-testing"
+
+// CodeBranch - Brnach of the code to deploy
+const CodeBranch = "dev"
 
 // VMConfig - config for a VM in Google Cloud
 type VMConfig struct {
@@ -46,8 +47,71 @@ type VMConfig struct {
 	CodeBranch          string
 }
 
+// NodeConfigParams -
+type NodeConfigParams struct {
+	Config  *types.Config
+	Node    *types.Node
+	Account *types.Account
+}
+
 func main() {
-	// Config Logger
+	configureLogging()
+	fmt.Println("Running, please wait...")
+
+	// 1. Create SEED VMs => NON configured seeds, but we have the VMs IPs
+	// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
+	seedVMConfig := getDefaultVMConfig()
+	seedVMConfig.NamePrefix = NamePrefix + "-seed"
+	createDisgoNodeVMs(SeedsCount, &seedVMConfig)
+
+	var seedsAccounts = []*types.Account{}
+	for i := 0; i < SeedsCount; i++ {
+		var vmName = fmt.Sprintf("%s-%d", seedVMConfig.NamePrefix, i)
+		seedsAccounts = append(seedsAccounts, configHelpers.CreateAccount(vmName))
+	}
+
+	var seedAddressToNodeConfigs = fetchSeedsVMsMappings(seedVMConfig.NamePrefix, SeedsCount, seedsAccounts)
+
+	// 2. Create DELEGATE VMs => NON configured delegates, but we have the VMs IPs
+	// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
+	delegateVMConfig := getDefaultVMConfig()
+	delegateVMConfig.NamePrefix = NamePrefix + "-delegate"
+	createDisgoNodeVMs(DelegatesCount, &delegateVMConfig)
+
+	var delegatesAccounts = []*types.Account{}
+	for i := 0; i < DelegatesCount; i++ {
+		var vmName = fmt.Sprintf("%s-%d", delegateVMConfig.NamePrefix, i)
+		delegatesAccounts = append(delegatesAccounts, configHelpers.CreateAccount(vmName))
+	}
+
+	configDelegateVMs(delegateVMConfig.NamePrefix, DelegatesCount, delegatesAccounts, seedAddressToNodeConfigs)
+
+	// 3. Update seeds configs
+	// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
+	configSeedVMs(seedAddressToNodeConfigs, delegatesAccounts)
+
+	// 4. Create Scandis VM
+	// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
+	// var scandisVMConfig = &VMConfig{
+	// 	ImageProject:     "debian-cloud",
+	// 	ImageFamily:      "debian-9",
+	// 	MachineType:      "n1-standard-2",
+	// 	Tags:             "http-server,https-server",
+	// 	NamePrefix:       NamePrefix + "-scandis",
+	// 	ScriptPrefixURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
+	// 	ScriptNewScandis: "vm-debian9-new-scandis.sh",
+	// 	CodeBranch:       "dev",
+	// }
+
+	// createScandisVMs(scandisVMConfig, seedVMConfig.NamePrefix+"-0")
+
+	fmt.Println("Done.")
+
+	// Dump log
+	(golog.Instance().(*gologM.InmemoryLogger)).Flush()
+}
+
+func configureLogging() {
 	var inmemoryLogger = gologM.NewInmemoryLogger(
 		gologM.NewSimpleFormatterLogger(
 			gologM.NewMultiLogger(
@@ -58,85 +122,11 @@ func main() {
 			),
 		),
 	)
-	logger.StoreSingleton(
-		logger.NewLogger(
+	golog.StoreSingleton(
+		golog.NewLogger(
 			inmemoryLogger,
 		),
 	)
-
-	fmt.Println("Running, please wait...")
-
-	// Set defaults
-	var defaultVMConfig = VMConfig{
-		ImageProject:    "debian-cloud",
-		ImageFamily:     "debian-9",
-		MachineType:     "n1-standard-2",
-		Tags:            "disgo-node",
-		NamePrefix:      NamePrefix + "-seed",
-		ScriptPrefixURL: "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
-		ScriptNewNode:   "vm-debian9-new-node.sh",
-		CodeBranch:      "master",
-	}
-
-	var defaultNodeConfig = types.Config{
-		HttpEndpoint: &types.Endpoint{
-			Host: "0.0.0.0",
-			Port: 1975,
-		},
-		GrpcEndpoint: &types.Endpoint{
-			Host: "0.0.0.0",
-			Port: 1973,
-		},
-		GrpcTimeout:        5,
-		UseQuantumEntropy:  false,
-		SeedEndpoints:      []*types.Endpoint{},
-		GenesisTransaction: `{"hash":"a48ff2bd1fb99d9170e2bae2f4ed94ed79dbc8c1002986f8054a369655e29276","type":0,"from":"e6098cc0d5c20c6c31c4d69f0201a02975264e94","to":"3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c","value":10000000,"data":"","time":0,"signature":"03c1fdb91cd10aa441e0025dd21def5ebe045762c1eeea0f6a3f7e63b27deb9c40e08b656a744f6c69c55f7cb41751eebd49c1eedfbd10b861834f0352c510b200","hertz":0,"fromName":"","toName":""}`,
-	}
-
-	// Create SEED VMs
-	seedVMConfig := defaultVMConfig
-	seedVMConfig.NamePrefix = NamePrefix + "-seed"
-
-	createNodeVMs(SeedsCount, &seedVMConfig, &defaultNodeConfig)
-
-	var seedEndpoints = getEndpoints(SeedsCount, NamePrefix+"-seed")
-
-	// Create DELEGATE VMs
-	delegateVMConfig := defaultVMConfig
-	delegateVMConfig.NamePrefix = NamePrefix + "-delegate"
-
-	delegateConfig := defaultNodeConfig
-	delegateConfig.SeedEndpoints = seedEndpoints
-
-	createNodeVMs(DelegatesCount, &delegateVMConfig, &delegateConfig)
-
-	// Create NODE VMs
-	nodeVMConfig := defaultVMConfig
-	nodeVMConfig.NamePrefix = NamePrefix + "-node"
-
-	delegateNodeConfig := defaultNodeConfig
-	delegateNodeConfig.SeedEndpoints = seedEndpoints
-
-	createNodeVMs(NodesCount, &nodeVMConfig, &delegateNodeConfig)
-
-	// Create Scandis VM
-	var scandisVMConfig = &VMConfig{
-		ImageProject:     "debian-cloud",
-		ImageFamily:      "debian-9",
-		MachineType:      "n1-standard-2",
-		Tags:             "http-server,https-server",
-		NamePrefix:       NamePrefix + "-scandis",
-		ScriptPrefixURL:  "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
-		ScriptNewScandis: "vm-debian9-new-scandis.sh",
-		CodeBranch:       "dev",
-	}
-
-	createScandisVMs(scandisVMConfig, seedVMConfig.NamePrefix+"-0")
-
-	fmt.Println("Done.")
-
-	// Dump log
-	(inmemoryLogger.(*gologM.InmemoryLogger)).Flush()
 }
 
 // Get the underlying OS command shell
@@ -160,7 +150,7 @@ func getOSE() string {
 	return ose
 }
 
-func createNodeVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
+func createDisgoNodeVMs(count int, vmConfig *VMConfig) {
 	var wg sync.WaitGroup
 
 	for i := 0; i < count; i++ {
@@ -196,23 +186,17 @@ func createNodeVMs(count int, vmConfig *VMConfig, nodeConfig *types.Config) {
 		// RUN VM creation in PARALLEL
 		// Run COMMANDS inside the VM in SEQUENTIAL order
 		wg.Add(1)
-		go func(vritualMachineName string, disgoConfig *types.Config, cmds ...string) {
-			logger.Instance().LogInfo(vritualMachineName, 0, "~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~")
-			logger.Instance().LogInfo(vritualMachineName, 0, "DEPLOY START")
+		go func(vritualMachineName string, cmds ...string) {
+			golog.Instance().LogInfo(vritualMachineName, 0, "~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~")
+			golog.Instance().LogInfo(vritualMachineName, 0, "DEPLOY START")
 
 			for _, cmd := range cmds {
-				logger.Instance().LogInfo(vritualMachineName, 4, cmd)
+				golog.Instance().LogInfo(vritualMachineName, 4, cmd)
 				exec.Command(getOSC(), getOSE(), cmd).Run()
 			}
 
-			var thisVMIP = getVMIP(vritualMachineName)
-			disgoConfig.HttpEndpoint.Host = thisVMIP
-			disgoConfig.GrpcEndpoint.Host = thisVMIP
-
-			replaceConfigFileOnVM(vritualMachineName, disgoConfig)
-
 			wg.Done()
-		}(vmName, nodeConfig, createVM, downloadScriptFiles, execScript)
+		}(vmName, createVM, downloadScriptFiles, execScript)
 	}
 
 	wg.Wait()
@@ -255,11 +239,11 @@ func createScandisVMs(vmConfig *VMConfig, seedVmName string) {
 	// Run COMMANDS inside the VM in SEQUENTIAL order
 	wg.Add(1)
 	go func(vritualMachineName string, cmds ...string) {
-		logger.Instance().LogInfo(vritualMachineName, 0, "~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~")
-		logger.Instance().LogInfo(vritualMachineName, 0, "DEPLOY SCANDIS START")
+		golog.Instance().LogInfo(vritualMachineName, 0, "~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~")
+		golog.Instance().LogInfo(vritualMachineName, 0, "DEPLOY SCANDIS START")
 
 		for _, cmd := range cmds {
-			logger.Instance().LogInfo(vritualMachineName, 4, cmd)
+			golog.Instance().LogInfo(vritualMachineName, 4, cmd)
 			exec.Command(getOSC(), getOSE(), cmd).Run()
 		}
 
@@ -284,19 +268,19 @@ func getVMIP(vmName string) string {
 	return ""
 }
 
-func getEndpoints(count int, namePrefix string) []*types.Endpoint {
-	var endpoints = []*types.Endpoint{}
+func getVMsIPs(count int, namePrefix string) []string {
+	var vmsIPs = []string{}
 
 	for i := 0; i < count; i++ {
 		var vmName = fmt.Sprintf("%s-%d", namePrefix, i)
 
 		var ip = getVMIP(vmName)
 		if ip != "" {
-			endpoints = append(endpoints, &types.Endpoint{Host: ip, Port: 1973})
+			vmsIPs = append(vmsIPs, ip)
 		}
 	}
 
-	return endpoints
+	return vmsIPs
 }
 
 func randString(n int) string {
@@ -309,33 +293,151 @@ func randString(n int) string {
 	return string(b)
 }
 
-func replaceConfigFileOnVM(vmName string, disgoConfig *types.Config) {
+func replaceConfigOnVM(vmName string, nodeConfigParams *NodeConfigParams) {
 	var configFileName = randString(20) + ".json"
-	file, error := os.Create(configFileName)
-	if error == nil {
-		bytes, error := json.Marshal(&disgoConfig)
-		if error == nil {
-			// Save JSON config to a temp file
-			fmt.Fprintf(file, string(bytes))
-			file.Close()
+	var accountFileName = randString(20) + ".json"
 
-			var fullFileName, _ = filepath.Abs(configFileName)
+	file1, err1 := os.Create(configFileName)
+	file2, err2 := os.Create(accountFileName)
+
+	if err1 == nil && err2 != nil {
+		bytes1, err1 := json.Marshal(nodeConfigParams.Config)
+		bytes2, err2 := json.Marshal(nodeConfigParams.Account)
+
+		if err1 == nil && err2 != nil {
+
+			// Save JSON config to a temp file
+			fmt.Fprintf(file1, string(bytes1))
+			fmt.Fprintf(file2, string(bytes2))
+
+			file1.Close()
+			file2.Close()
+
+			var fullFileName1, _ = filepath.Abs(configFileName)
+			var fullFileName2, _ = filepath.Abs(accountFileName)
 
 			// Upload temp file to the VM
-			var cmd1 = fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName, vmName)
-			var cmd2 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)
-			var cmd3 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)
+			var cmd1 = fmt.Sprintf("gcloud compute scp %s %s:~/config.json", fullFileName1, vmName)
+			var cmd2 = fmt.Sprintf("gcloud compute scp %s %s:~/account.json", fullFileName2, vmName)
 
-			logger.Instance().LogInfo(vmName, 4, cmd1)
-			logger.Instance().LogInfo(vmName, 4, cmd2)
-			logger.Instance().LogInfo(vmName, 4, cmd3)
+			var cmd3 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/config.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)
+			var cmd4 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo mv ~/account.json /go-binaries/config/ && sudo chown -R dispatch-services:dispatch-services /go-binaries'", vmName)
+
+			var cmd5 = fmt.Sprintf("gcloud compute ssh %s --command 'sudo sudo systemctl restart dispatch-disgo-node'", vmName)
+
+			golog.Instance().LogInfo(vmName, 4, cmd1)
+			golog.Instance().LogInfo(vmName, 4, cmd2)
+			golog.Instance().LogInfo(vmName, 4, cmd3)
+			golog.Instance().LogInfo(vmName, 4, cmd4)
+			golog.Instance().LogInfo(vmName, 4, cmd5)
 
 			exec.Command(getOSC(), getOSE(), cmd1).Run()
 			exec.Command(getOSC(), getOSE(), cmd2).Run()
 			exec.Command(getOSC(), getOSE(), cmd3).Run()
+			exec.Command(getOSC(), getOSE(), cmd4).Run()
+			exec.Command(getOSC(), getOSE(), cmd5).Run()
 
 			// Remove temp file
 			os.Remove(configFileName)
+			os.Remove(accountFileName)
 		}
+	}
+}
+
+func fetchSeedsVMsMappings(seedNamePrefix string, seedCount int, seedsAccounts []*types.Account) map[string]*NodeConfigParams {
+	var defaultNodeConfig = types.GetDefaultConfig()
+
+	var seedAddressToNodeConfigs = map[string]*NodeConfigParams{}
+
+	for i := 0; i < seedCount; i++ {
+
+		var vmName = fmt.Sprintf("%s-%d", seedNamePrefix, i)
+		var seedIP = getVMIP(vmName)
+
+		var seedAddress = seedsAccounts[i].Address
+
+		var config = configHelpers.GetSeedConfig(
+			seedIP,
+			defaultNodeConfig.HttpEndpoint.Port,
+			defaultNodeConfig.GrpcEndpoint.Port,
+			seedsAccounts,
+		)
+
+		var node = &types.Node{
+			Address:      seedAddress,
+			GrpcEndpoint: config.GrpcEndpoint,
+			HttpEndpoint: config.HttpEndpoint,
+			Type:         types.TypeSeed,
+		}
+
+		seedAddressToNodeConfigs[vmName] = &NodeConfigParams{
+			Config:  config,
+			Node:    node,
+			Account: seedsAccounts[i],
+		}
+	}
+
+	return seedAddressToNodeConfigs
+}
+
+func configSeedVMs(
+	seedVMToNodeConfigs map[string]*NodeConfigParams,
+	delegatesAccounts []*types.Account,
+) {
+	var delegateAddresses = []string{}
+	for _, adress := range delegatesAccounts {
+		delegateAddresses = append(delegateAddresses, adress.Address)
+	}
+
+	for vmName, nodeConfigs := range seedVMToNodeConfigs {
+		nodeConfigs.Config.DelegateAddresses = delegateAddresses
+		replaceConfigOnVM(vmName, nodeConfigs)
+	}
+}
+
+func configDelegateVMs(
+	delegateNamePrefix string,
+	delegateCount int,
+	delegatesAccounts []*types.Account,
+	seedVMToNodeConfigs map[string]*NodeConfigParams,
+) {
+	var defaultNodeConfig = types.GetDefaultConfig()
+
+	listOfSeedNodes := []*types.Node{}
+	for _, v := range seedVMToNodeConfigs {
+		listOfSeedNodes = append(listOfSeedNodes, v.Node)
+	}
+
+	for i := 0; i < delegateCount; i++ {
+		var vmName = fmt.Sprintf("%s-%d", delegateNamePrefix, i)
+		vmIP := getVMIP(vmName)
+
+		account := delegatesAccounts[i]
+
+		config := configHelpers.GetDelegateConfig(
+			vmIP,
+			defaultNodeConfig.HttpEndpoint.Port,
+			defaultNodeConfig.GrpcEndpoint.Port,
+			listOfSeedNodes,
+		)
+
+		replaceConfigOnVM(vmName, &NodeConfigParams{
+			Config:  config,
+			Node:    nil,
+			Account: account,
+		})
+	}
+}
+
+func getDefaultVMConfig() VMConfig {
+	return VMConfig{
+		ImageProject:    "debian-cloud",
+		ImageFamily:     "debian-9",
+		MachineType:     "n1-standard-2",
+		Tags:            "disgo-node",
+		NamePrefix:      NamePrefix + "-abracadabra",
+		ScriptPrefixURL: "https://raw.githubusercontent.com/dispatchlabs/samples/dev/deployment",
+		ScriptNewNode:   "vm-debian9-new-node.sh",
+		CodeBranch:      CodeBranch,
 	}
 }
