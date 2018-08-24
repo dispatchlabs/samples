@@ -1,0 +1,24 @@
+[
+	{
+		"constant": true,
+		"inputs": [],
+		"name": "getMultiReturn",
+		"outputs": [
+			{
+				"name": "",
+				"type": "int256"
+			},
+			{
+				"name": "",
+				"type": "string"
+			},
+			{
+				"name": "",
+				"type": "bool"
+			}
+		],
+		"payable": false,
+		"stateMutability": "view",
+		"type": "function"
+	}
+]
