@@ -1,4 +1,4 @@
-package config
+package helper
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ func TestSeedConfig(t *testing.T) {
 	seedAccount := CreateSeedAccount();
 
 	fmt.Printf("%s\n", seedAccount.ToPrettyJson())
-	seedConfig := GetSeedConfig("127.0.0.1", 1975, 1973, seedAccount)
+	seedConfig := CreateSeedConfig("127.0.0.1", 1975, 1973, seedAccount)
 
 	fmt.Printf("%s\n", seedConfig.ToPrettyJson())
 
@@ -24,7 +24,7 @@ func TestDelegateConfig(t *testing.T) {
 
 
 	seedAccount := CreateSeedAccount();
-	seedConfig := GetSeedConfig("127.0.0.1", 1975, 1973, seedAccount)
+	seedConfig := CreateSeedConfig("127.0.0.1", 1975, 1973, seedAccount)
 
 	for i := 1; i <= nbrDelegates; i++ {
 		delegateName := fmt.Sprintf("delegate-%d", i)
@@ -32,7 +32,7 @@ func TestDelegateConfig(t *testing.T) {
 		grpcPort := startingPort
 		startingPort++
 		httpPort := startingPort
-		delegateConfig := GetDelegateConfig(delegateName, httpPort, grpcPort, seedConfig.Seeds)
+		delegateConfig := CreateDelegateConfig(delegateName, httpPort, grpcPort, seedConfig.Seeds)
 		fmt.Printf("%s:\n%s\n", delegateName, delegateConfig.ToPrettyJson())
 	}
 }
@@ -45,7 +45,7 @@ func TestNodeInfo(t *testing.T) {
 	startingPort = 3500
 
 	seedAccount := CreateSeedAccount();
-	seedConfig := GetSeedConfig("127.0.0.1", 1975, 1973, seedAccount )
+	seedConfig := CreateSeedConfig("127.0.0.1", 1975, 1973, seedAccount )
 	seedNode := configTypes.NodeInfo{"seed", "127.0.0.1", seedConfig.HttpEndpoint.Port, seedConfig.GrpcEndpoint.Port, seedAccount, seedConfig}
 
 	configMap[seedNode.Name] = seedNode
@@ -56,7 +56,7 @@ func TestNodeInfo(t *testing.T) {
 		grpcPort := startingPort
 		startingPort++
 		httpPort := startingPort
-		delegateConfig := GetDelegateConfig("127.0.0.1", httpPort, grpcPort, seedNode.Config.Seeds)
+		delegateConfig := CreateDelegateConfig("127.0.0.1", httpPort, grpcPort, seedNode.Config.Seeds)
 		delegateAccount := CreateDelegateAccount(delegateName)
 
 		delegateAddressList[i-1] = delegateAccount.Address
