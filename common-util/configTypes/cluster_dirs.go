@@ -3,13 +3,14 @@ package configTypes
 import (
 	"fmt"
 	"os"
+	"github.com/dispatchlabs/samples/common-util/util"
 )
 
 type ClusterStructure struct {
 	DisgoDir		string
 	ClusterRoot 	string
-	SeedDirs		[]string
-	DelegateDirs 	[]string
+	NodeDirs		map[string]string
+	DelegateDirs 	map[string]string
 	AccountFileName string
 	ConfigFileName  string
 }
@@ -19,31 +20,39 @@ func NewClusterStructure(disgoDir, clusterRoot string, nbrSeeds, nbrDelegates in
 	return &ClusterStructure{
 		DisgoDir:		disgoDir,
 		ClusterRoot:	clusterRoot,
-		SeedDirs:		getSeedDirs(clusterRoot, nbrSeeds),
-		DelegateDirs:   getDelegateDirs(clusterRoot, nbrDelegates),
+		NodeDirs:		getNodeDirs(clusterRoot, nbrSeeds, nbrDelegates),
 		AccountFileName: "account.json",
 		ConfigFileName: "config.json",
 	}
 }
 
-func getSeedDirs(clusterRoot string, nbrSeeds int) []string {
-	seedDirs := make([]string, nbrSeeds)
+func getNodeDirs(clusterRoot string, nbrSeeds, nbrDelegates int) map[string]string {
+	nodeDirs := map[string]string{}
 	for i := 0; i < nbrSeeds; i++ {
 		seedName := fmt.Sprintf("seed-%d", i)
-		seedDirs[i] = clusterRoot + string(os.PathSeparator) + seedName
+		nodeDirs[seedName] = clusterRoot + string(os.PathSeparator) + seedName
 	}
-	return seedDirs
-}
-
-func getDelegateDirs(clusterRoot string, nbrDelegates int) []string {
-	delegateDirs := make([]string, nbrDelegates)
 	for i := 0; i < nbrDelegates; i++ {
 		delegateName := fmt.Sprintf("delegate-%d", i)
-		delegateDirs[i] = clusterRoot + string(os.PathSeparator) + delegateName
+		nodeDirs[delegateName] = clusterRoot + string(os.PathSeparator) + delegateName
 	}
-	return delegateDirs
+	return nodeDirs
 }
 
-//func (this ClusterStructure) getAccountFileLocation(dirName string) {
-//	this.
-//}
+
+func (this ClusterStructure) SaveAccountAndConfigFiles(nodeInfo *NodeInfo) {
+	configDir := this.NodeDirs[nodeInfo.Name] + string(os.PathSeparator) + "config/"
+
+	util.WriteFile(configDir, configDir + string(os.PathSeparator) + "account.json", nodeInfo.Account.ToPrettyJson())
+	util.WriteFile(configDir, configDir + string(os.PathSeparator) + "config.json", nodeInfo.Config.ToPrettyJson())
+}
+
+func (this ClusterStructure) getAccountFileLocation(nodeName string) string {
+	baseDir := this.NodeDirs[nodeName]
+	return baseDir  + string(os.PathSeparator) + "config/account.json"
+}
+
+func (this ClusterStructure) getConfigFileLocation(nodeName string) string {
+	baseDir := this.NodeDirs[nodeName]
+	return baseDir  + string(os.PathSeparator) + "config/config.json"
+}

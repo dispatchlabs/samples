@@ -10,28 +10,39 @@ import (
 
 func TestLocalFullConfig(t *testing.T) {
 	host := "127.0.0.1"
+	nbrSeeds := 1
 	nbrDelegates := 5
-	var startingPort int64
-	startingPort = 3501
+	delegateStartingPort := 3502
+	seedStartingPort := 1973
 
-	seedNode := &configTypes.NodeInfo{"seed", host, 1975,1973, nil, nil}
+	clusterStructure := configTypes.NewClusterStructure(GetDisgoDirectory(), GetDefaultDirectory(), nbrSeeds, nbrDelegates)
+
+	seedNodes :=  make([]*configTypes.NodeInfo, nbrSeeds)
+	for i := 0; i < nbrSeeds; i++ {
+		seedName := fmt.Sprintf("seed-%d", i)
+		grpcPort := seedStartingPort + (i*4)
+		httpPort := grpcPort + 2
+
+		seedInfo := &configTypes.NodeInfo{seedName, host, int64(httpPort),int64(grpcPort), nil, nil}
+		seedNodes[i] = seedInfo
+	}
 
 	delegateNodes := make([]*configTypes.NodeInfo, nbrDelegates)
 	for i := 0; i < nbrDelegates; i++ {
 		delegateName := fmt.Sprintf("delegate-%d", i)
 
-		startingPort++
-		grpcPort := startingPort
-		startingPort++
-		httpPort := startingPort
+		grpcPort := delegateStartingPort + (i*2)
+		httpPort := grpcPort + 1
 
-		delegateNodes[i] = &configTypes.NodeInfo{delegateName, host, httpPort, grpcPort, nil, nil}
+		delegateNodes[i] = &configTypes.NodeInfo{delegateName, host, int64(httpPort),int64(grpcPort), nil, nil}
 
 	}
-	configMap := CreateNewLocalConfigs(seedNode, delegateNodes, true)
+	configMap := CreateNewLocalConfigs(clusterStructure, seedNodes, delegateNodes, true)
 	for _, v := range configMap {
 		fmt.Printf("%s\n", v.ToPrettyJson())
+
 	}
+
 
 }
 
