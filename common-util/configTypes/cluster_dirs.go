@@ -42,17 +42,16 @@ func getNodeDirs(clusterRoot string, nbrSeeds, nbrDelegates int) map[string]stri
 
 func (this ClusterStructure) SaveAccountAndConfigFiles(nodeInfo *NodeInfo) {
 	configDir := this.NodeDirs[nodeInfo.Name] + string(os.PathSeparator) + "config/"
-
-	util.WriteFile(configDir, configDir + string(os.PathSeparator) + "account.json", nodeInfo.Account.ToPrettyJson())
-	util.WriteFile(configDir, configDir + string(os.PathSeparator) + "config.json", nodeInfo.Config.ToPrettyJson())
+	util.WriteFile(configDir, configDir + string(os.PathSeparator) + this.AccountFileName, nodeInfo.Account.ToPrettyJson())
+	util.WriteFile(configDir, configDir + string(os.PathSeparator) + this.ConfigFileName, nodeInfo.Config.ToPrettyJson())
 }
 
 func (this ClusterStructure) getAccountFileLocation(nodeName string) string {
 	baseDir := this.NodeDirs[nodeName]
-	return baseDir  + string(os.PathSeparator) + "config/account.json"
+	return baseDir  + string(os.PathSeparator) + this.AccountFileName
 }
 
 func (this ClusterStructure) getConfigFileLocation(nodeName string) string {
 	baseDir := this.NodeDirs[nodeName]
-	return baseDir  + string(os.PathSeparator) + "config/config.json"
+	return baseDir  + string(os.PathSeparator) + this.ConfigFileName
 }

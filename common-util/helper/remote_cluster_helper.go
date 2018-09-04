@@ -1,25 +1,34 @@
 package helper
 
-import "github.com/dispatchlabs/samples/common-util/configTypes"
+import (
+	"github.com/dispatchlabs/samples/common-util/configTypes"
+	"github.com/dispatchlabs/disgo/commons/types"
+)
 
-func GetNewRemoteConfigs(seedNode *configTypes.NodeInfo, delegateNodes []*configTypes.NodeInfo) map[string]*configTypes.NodeInfo {
+func GetNewRemoteConfigs(seedNodes, delegateNodes []*configTypes.NodeInfo) map[string]*configTypes.NodeInfo {
 	configMap := map[string]*configTypes.NodeInfo{}
 
-	seedAccount := CreateSeedAccount();
-	seedConfig := CreateSeedConfig(seedNode.Host, seedNode.HttpPort, seedNode.GrpcPort, seedAccount)
-	seedNode.Account = seedAccount
-	seedNode.Config = seedConfig
-	configMap["seed"] = seedNode
+	seedsConfig := make([]*types.Node, len(seedNodes))
+	for i := 0; i < len(seedNodes); i++ {
+		seedAccount := CreateSeedAccount();
+		seedConfig := CreateSeedConfig(seedNodes[i].Host, seedNodes[i].HttpPort, seedNodes[i].GrpcPort, seedAccount)
+		seedNodes[i].Account = seedAccount
+		seedNodes[i].Config = seedConfig
+		seedsConfig[i] = seedConfig.Seeds[0]
+		configMap[seedNodes[i].Name] = seedNodes[i]
+	}
 
 	delegateAddressList := make([]string, len(delegateNodes))
 	for i := 0; i < len(delegateNodes); i++ {
-		delegateNodes[i].Config = CreateDelegateConfig(delegateNodes[i].Host, delegateNodes[i].HttpPort, delegateNodes[i].GrpcPort, seedConfig.Seeds)
+		delegateNodes[i].Config = CreateDelegateConfig(delegateNodes[i].Host, delegateNodes[i].HttpPort, delegateNodes[i].GrpcPort, seedsConfig)
 		delegateNodes[i].Account = CreateDelegateAccount(delegateNodes[i].Name)
 
 		delegateAddressList[i] = delegateNodes[i].Account.Address
 
 		configMap[delegateNodes[i].Name] = delegateNodes[i]
 	}
-	seedConfig.DelegateAddresses = delegateAddressList
+	for _, seedNode := range seedNodes {
+		seedNode.Config.DelegateAddresses = delegateAddressList
+	}
 	return configMap
 }

@@ -6,6 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/dispatchlabs/disgo/commons/utils"
 )
 
 func ReadFile(path string) ([]byte, error) {
@@ -40,3 +41,29 @@ func WriteFile(dir, fileName, content string) error {
 	return nil
 }
 
+func DeleteSubDirs(dir string) error {
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, file := range files {
+		if file.IsDir() {
+			err := os.Remove(file.Name())
+			if err != nil {
+				utils.Error(err)
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func DeleteDir(dir string) error {
+	err := os.RemoveAll(dir)
+	if err != nil {
+		utils.Error(err)
+		return err
+	}
+	return nil
+}

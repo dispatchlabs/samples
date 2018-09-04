@@ -2,7 +2,6 @@ package helper
 
 import (
 	"os/user"
-	"os"
 	"github.com/dispatchlabs/samples/common-util/configTypes"
 	"github.com/dispatchlabs/disgo/commons/utils"
 	"fmt"
@@ -12,25 +11,6 @@ import (
 /*
  * Functions specifically for creating local cluster to run
  */
-
-func BuildDisgoExecutable() {
-	cmd := fmt.Sprintf("cd %s; go build", GetDisgoDirectory())
-	err := Exec(cmd)
-	if err != nil {
-		utils.Error(err)
-	}
-}
-
-func UpdateDisgoExecutable(nodeName string) {
-	nodeDir := GetDefaultDirectory() + string(os.PathSeparator) + nodeName + string(os.PathSeparator)
-
-	cmd := fmt.Sprintf("cp %s/disgo %s", GetDisgoDirectory(), nodeDir)
-	utils.Debug("Command: " + cmd)
-	err := Exec(cmd)
-	if err != nil {
-		utils.Error(err)
-	}
-}
 
 // Restricted config specifies delegate list in the seed node so any nodes joining are a only type Node
 // Non-Restricted config does not specify delegate list in the seed node so any nodes joining are a delegate
@@ -62,13 +42,37 @@ func CreateNewLocalConfigs(clusterStructure *configTypes.ClusterStructure, seedN
 			seedNode.Config.DelegateAddresses = delegateAddressList
 		}
 	}
-	BuildDisgoExecutable()
-	for _, v := range configMap {
-		clusterStructure.SaveAccountAndConfigFiles(v)
-		UpdateDisgoExecutable(v.Name)
+	return configMap
+}
+
+
+func SetupDefaultConfig(host string, nbrSeeds, nbrDelegates, seedStartingPort, delegateStartingPort int) {
+	clusterStructure := configTypes.NewClusterStructure(GetDisgoDirectory(), GetDefaultDirectory(), nbrSeeds, nbrDelegates)
+
+	seedNodes :=  make([]*configTypes.NodeInfo, nbrSeeds)
+	for i := 0; i < nbrSeeds; i++ {
+		seedName := fmt.Sprintf("seed-%d", i)
+		grpcPort := seedStartingPort + (i*4)
+		httpPort := grpcPort + 2
+
+		seedInfo := &configTypes.NodeInfo{seedName, host, int64(httpPort),int64(grpcPort), nil, nil}
+		seedNodes[i] = seedInfo
 	}
 
-	return configMap
+	delegateNodes := make([]*configTypes.NodeInfo, nbrDelegates)
+	for i := 0; i < nbrDelegates; i++ {
+		delegateName := fmt.Sprintf("delegate-%d", i)
+
+		grpcPort := delegateStartingPort + (i*2)
+		httpPort := grpcPort + 1
+
+		delegateNodes[i] = &configTypes.NodeInfo{delegateName, host, int64(httpPort),int64(grpcPort), nil, nil}
+
+	}
+	configMap := CreateNewLocalConfigs(clusterStructure, seedNodes, delegateNodes, true)
+	for _, v := range configMap {
+		fmt.Printf("%s\n", v.ToPrettyJson())
+	}
 }
 
 var defaultDirectory string

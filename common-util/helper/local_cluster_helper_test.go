@@ -4,8 +4,6 @@ import (
 	"testing"
 	"github.com/dispatchlabs/samples/common-util/configTypes"
 	"fmt"
-	"io/ioutil"
-	"log"
 )
 
 func TestLocalFullConfig(t *testing.T) {
@@ -15,6 +13,11 @@ func TestLocalFullConfig(t *testing.T) {
 	delegateStartingPort := 3502
 	seedStartingPort := 1973
 
+	setup(host, nbrSeeds, nbrDelegates, seedStartingPort, delegateStartingPort)
+
+}
+
+func setup(host string, nbrSeeds, nbrDelegates, seedStartingPort, delegateStartingPort int) {
 	clusterStructure := configTypes.NewClusterStructure(GetDisgoDirectory(), GetDefaultDirectory(), nbrSeeds, nbrDelegates)
 
 	seedNodes :=  make([]*configTypes.NodeInfo, nbrSeeds)
@@ -43,18 +46,4 @@ func TestLocalFullConfig(t *testing.T) {
 
 	}
 
-
-}
-
-func TestUpdateDisgoExecutable(t *testing.T) {
-	files, err := ioutil.ReadDir(GetDefaultDirectory())
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, file := range files {
-		if file.IsDir() {
-
-			UpdateDisgoExecutable(file.Name())
-		}
-	}
 }
