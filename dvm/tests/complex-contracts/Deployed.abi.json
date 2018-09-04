@@ -1,13 +1,8 @@
 [
 	{
 		"constant": true,
-		"inputs": [
-			{
-				"name": "originalContract",
-				"type": "address"
-			}
-		],
-		"name": "getAPrxoy",
+		"inputs": [],
+		"name": "getA",
 		"outputs": [
 			{
 				"name": "",
@@ -22,15 +17,11 @@
 		"constant": false,
 		"inputs": [
 			{
-				"name": "originalContract",
-				"type": "address"
-			},
-			{
 				"name": "a",
 				"type": "uint256"
 			}
 		],
-		"name": "setAProxy",
+		"name": "setA",
 		"outputs": [],
 		"payable": false,
 		"stateMutability": "nonpayable",
