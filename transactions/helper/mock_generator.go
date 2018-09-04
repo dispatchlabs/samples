@@ -179,8 +179,16 @@ func getVariableParamsForContract(args []string) []interface{} {
 			argList = append(argList, i64)
 		case "string":
 			argList = append(argList, val)
+		case "bool":
+			if val == "true" {
+				argList = append(argList, true)
+			} else {
+				argList = append(argList, false)
+			}
 		}
 	}
+
+	fmt.Println("ArgList:", argList)
 
 	return argList
 }
