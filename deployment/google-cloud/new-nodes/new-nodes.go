@@ -12,12 +12,12 @@ import (
 	"sync"
 
 	"github.com/dispatchlabs/disgo/commons/types"
-	"github.com/dispatchlabs/samples/common-util/config-helpers"
 
 	golog "github.com/nic0lae/golog"
 	gologC "github.com/nic0lae/golog/contracts"
 	gologM "github.com/nic0lae/golog/modifiers"
 	gologP "github.com/nic0lae/golog/persisters"
+	"github.com/dispatchlabs/samples/common-util/helper"
 )
 
 // SeedsCount - nr of SEED(s) to spawn
@@ -67,7 +67,7 @@ func main() {
 	var seedsAccounts = []*types.Account{}
 	for i := 0; i < SeedsCount; i++ {
 		var vmName = fmt.Sprintf("%s-%d", seedVMConfig.NamePrefix, i)
-		seedsAccounts = append(seedsAccounts, configHelpers.CreateAccount(vmName))
+		seedsAccounts = append(seedsAccounts, helper.CreateAccount(vmName))
 	}
 
 	var seedAddressToNodeConfigs = fetchSeedsVMsMappings(seedVMConfig.NamePrefix, SeedsCount, seedsAccounts)
@@ -81,7 +81,7 @@ func main() {
 	var delegatesAccounts = []*types.Account{}
 	for i := 0; i < DelegatesCount; i++ {
 		var vmName = fmt.Sprintf("%s-%d", delegateVMConfig.NamePrefix, i)
-		delegatesAccounts = append(delegatesAccounts, configHelpers.CreateAccount(vmName))
+		delegatesAccounts = append(delegatesAccounts, helper.CreateAccount(vmName))
 	}
 
 	configDelegateVMs(delegateVMConfig.NamePrefix, DelegatesCount, delegatesAccounts, seedAddressToNodeConfigs)
@@ -365,11 +365,11 @@ func fetchSeedsVMsMappings(seedNamePrefix string, seedCount int, seedsAccounts [
 
 		var seedAddress = seedsAccounts[i].Address
 
-		var config = configHelpers.GetSeedConfig(
+		var config = helper.CreateSeedConfig(
 			seedIP,
 			defaultNodeConfig.HttpEndpoint.Port,
 			defaultNodeConfig.GrpcEndpoint.Port,
-			seedsAccounts,
+			seedsAccounts[i],
 		)
 
 		var node = &types.Node{
@@ -423,7 +423,7 @@ func configDelegateVMs(
 
 		account := delegatesAccounts[i]
 
-		config := configHelpers.GetDelegateConfig(
+		config := helper.CreateDelegateConfig(
 			vmIP,
 			defaultNodeConfig.HttpEndpoint.Port,
 			defaultNodeConfig.GrpcEndpoint.Port,
