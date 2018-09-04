@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
-interface Deployed {
-    function setA(uint a) external;
-    function getA() external view returns (uint);
+contract Deployed {
+    function setA(uint a) public;
+    function getA() public view returns (uint);
 }
 
 contract CallDeployed  {

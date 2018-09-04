@@ -49,34 +49,34 @@ func allServicesInitFinished() {
 	const timeout = 1
 
 	// go func() {
-	// time.Sleep(timeout * time.Second)
-	// tx := deployContract()
+	time.Sleep(timeout * time.Second)
+	tx := deployContract()
 
-	// time.Sleep(3 * time.Second)
-	// deployRcpt := getReceipt(tx.Hash, fmt.Sprintf("%s/receipts", delegateUrl))
+	time.Sleep(3 * time.Second)
+	deployRcpt := getReceipt(tx.Hash, fmt.Sprintf("%s/receipts", delegateUrl))
 
-	// fmt.Println(fmt.Sprintf("CONTRACT-ADDRESS: %s", deployRcpt.ContractAddress))
+	fmt.Println(fmt.Sprintf("CONTRACT-ADDRESS: %s", deployRcpt.ContractAddress))
 	// }()
 
 	// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
 
 	// go func() {
-	time.Sleep(timeout * time.Second)
-	tx := executeMethod()
+	// time.Sleep(timeout * time.Second)
+	// tx := executeMethod()
 
-	time.Sleep(3 * time.Second)
-	executeRcpt := getReceipt(tx.Hash, fmt.Sprintf("%s/receipts", delegateUrl))
+	// time.Sleep(3 * time.Second)
+	// executeRcpt := getReceipt(tx.Hash, fmt.Sprintf("%s/receipts", delegateUrl))
 
-	fmt.Println(fmt.Sprintf("CALL-RECEIPT: %v", executeRcpt))
+	// fmt.Println(fmt.Sprintf("CALL-RECEIPT: %v", executeRcpt))
 
-	time.Sleep(120 * time.Second)
+	// time.Sleep(120 * time.Second)
 	// }()
 }
 
 func deployContract() *types.Transaction {
 	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
 	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
-	var code = "608060405234801561001057600080fd5b5061025f806100206000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063f3189d4614610051578063f474bd9e146100a8575b600080fd5b34801561005d57600080fd5b50610092600480360381019080803573ffffffffffffffffffffffffffffffffffffffff1690602001909291905050506100f5565b6040518082815260200191505060405180910390f35b3480156100b457600080fd5b506100f3600480360381019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803590602001909291905050506101a2565b005b6000808290508073ffffffffffffffffffffffffffffffffffffffff1663d46300fd6040518163ffffffff167c0100000000000000000000000000000000000000000000000000000000028152600401602060405180830381600087803b15801561015f57600080fd5b505af1158015610173573d6000803e3d6000fd5b505050506040513d602081101561018957600080fd5b8101908080519060200190929190505050915050919050565b60008290508073ffffffffffffffffffffffffffffffffffffffff1663ee919d50836040518263ffffffff167c010000000000000000000000000000000000000000000000000000000002815260040180828152602001915050600060405180830381600087803b15801561021657600080fd5b505af115801561022a573d6000803e3d6000fd5b505050505050505600a165627a7a72305820357833ed1cddada528e80a109eb86fdea4cadc72eba11ed595a73294811c87920029"
+	var code = "608060405234801561001057600080fd5b5060df8061001f6000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063d46300fd14604e578063ee919d50146076575b600080fd5b348015605957600080fd5b50606060a0565b6040518082815260200191505060405180910390f35b348015608157600080fd5b50609e6004803603810190808035906020019092919050505060a9565b005b60008054905090565b80600081905550505600a165627a7a723058205906547745a52855a1b22685e079cbdec04bad5d24c4c243d60837b39fb845890029"
 	var theTime = utils.ToMilliSeconds(time.Now())
 
 	var tx, _ = types.NewDeployContractTransaction(
@@ -99,7 +99,7 @@ func executeMethod() *types.Transaction {
 	// Taken from Genesis
 	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
 	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
-	var to = "d1ec81ee993fcf6bd719fd182453b24848b9e353"
+	var to = "3605940fd59acf673587f1249f19dbb138c0cb73"
 
 	var theTime = utils.ToMilliSeconds(time.Now())
 	var method = "setA"
