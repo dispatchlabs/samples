@@ -30,7 +30,7 @@ func main() {
 	switch arg {
 	case "setup":
 		config.SetUp(5, 3500)
-	case "execute", "test":
+	case "execute":
 		//transaction := sendGrpcTransactions(addressToUse)
 		hashes := sendHttpTransactions(addressToUse)
 
@@ -83,10 +83,10 @@ func main() {
 	case "deployContractFromFile":
 		contractAddress := deployContractFromFile(os.Args[2:])
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
-	case "executeContract":
+	case "executeContract", "test":
 		//executeContract("68500f38586234a98eaa98e2b9c5adf468494c55", "multiParams")
 		//executeContract("f8e84ac2f4d70fbb84d9d33bac70e4da809ae29c", "hi")
-		executeContract("cc763fe3e864e03d5786b89ec7319974209c5d3e", "arrayParam")
+		executeContract("73f184181cfa90354dfcdc837ff946809293f32b", "setAProxy")
 	case "executeVarArgContract":
 		if len(os.Args) < 4 {
 			fmt.Println("executeVarArgContract must have at least 3 arguments\n")
@@ -105,22 +105,22 @@ func main() {
 
 }
 
-func sendGrpcTransactions(toAddress string) *types.Transaction {
-	var tx *types.Transaction
-
-	for i := 0; i < txCount; i++ {
-		tx = helper.GetTransaction(toAddress)
-		gossipResponse, err := SendGrpcTransaction(tx, getRandomDelegate().GrpcEndpoint, toAddress)
-		if err != nil {
-			utils.Error(err)
-		} else {
-			//fmt.Printf("grpc response: %v\n", gossipResponse)
-			fmt.Printf("Transaction Hash: %v\n", gossipResponse.Transaction.Hash)
-		}
-		time.Sleep(delay)
-	}
-	return tx
-}
+//func sendGrpcTransactions(toAddress string) *types.Transaction {
+//	var tx *types.Transaction
+//
+//	for i := 0; i < txCount; i++ {
+//		tx = helper.GetTransaction(toAddress)
+//		gossipResponse, err := SendGrpcTransaction(tx, getRandomDelegate().GrpcEndpoint, toAddress)
+//		if err != nil {
+//			utils.Error(err)
+//		} else {
+//			//fmt.Printf("grpc response: %v\n", gossipResponse)
+//			fmt.Printf("Transaction Hash: %v\n", gossipResponse.Transaction.Hash)
+//		}
+//		time.Sleep(delay)
+//	}
+//	return tx
+//}
 
 func sendHttpTransactions(toAddress string) []string {
 	hashes := make([]string, txCount)
@@ -135,7 +135,7 @@ func sendHttpTransactions(toAddress string) []string {
 }
 
 func deployContract() string {
-	deployHash, err := sdk.DeploySmartContract(getRandomDelegate(), privateKey, from, helper.GetCode(), helper.GetAbi())
+	deployHash, err := sdk.DeploySmartContract(getRandomDelegate(), privateKey, from, helper.GetContractToContractCode(), helper.GetContractToContractAbi())
 	if err != nil {
 		utils.Error(err)
 	}
