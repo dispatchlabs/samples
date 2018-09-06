@@ -30,7 +30,6 @@ contract NonMathTest {
       let b := a
       loop:
         jump(loopend)
-      a add swap1
       n := sub(n, 1)
       jump(loop)
       loopend:
@@ -47,7 +46,6 @@ contract NonMathTest {
       let b := a
       loop:
         jumpi(loopend, eq(n, 0))
-      a add swap1
       n := sub(n, 1)
       jump(loop)
       loopend:
@@ -84,10 +82,10 @@ contract NonMathTest {
   // F	mem[p..(p+32))
   function test_mload() public pure returns(uint) {
     assembly {
-      let x := 20
-      mstore(0x20, add(mload(0x80), 3))
+      mstore(0x40, 20) 
+      mstore(0x20, add(mload(0x40), 3))
 
-      return(0, 0x20)
+      return(0x20, 0x20)
     }
   }
 
@@ -116,6 +114,7 @@ contract NonMathTest {
     assembly {
       sstore(0, 12)
       let x := sload(0)
+      mstore(0, x)
       return(0, 0x20)
     }
   }
@@ -144,26 +143,26 @@ contract NonMathTest {
   }
 
   // F	address of the current contract / execution context
-  function test_address() public view  returns(uint) {
+  function test_address() public view  returns(address) {
     assembly {
       mstore(0, address)
-      return(0, 0x20)
+      return(0, 0x80)
     }
   }
 
   // F	wei balance at address a
-  function test_balance() public view  returns(uint) {
+  function test_balance() public view  returns(uint256) {
     assembly {
-      mstore(0, balance(address))
-      return(0, 0x20)
+      mstore(0, balance(origin))
+      return(0, 0x100)
     }
   }
 
   // F	call sender (excluding delegatecall) 
-  function test_caller()	public view  returns(uint) {
+  function test_caller()	public view  returns(address) {
     assembly {
       mstore(0, caller)
-      return(0, 0x20)
+      return(0, 0x80)
     }
   }
 
@@ -171,7 +170,7 @@ contract NonMathTest {
   function test_callvalue() public view returns(uint) {
     assembly {
       mstore(0, callvalue)
-      return(0,0x20)
+      return(0,0x100)
     }
   }
 
@@ -211,9 +210,9 @@ contract NonMathTest {
   }
 
   // F	like codecopy(t, f, s) but take code at address a
-  function test_extcodecopy() public view returns(bytes) {
-    return GetCode.at(address(this));
-  }
+  // function test_extcodecopy() public view returns(bytes) {
+  //   return GetCode.at(address(this));
+  // }
 
   // B	size of the last returndata
   /* this gets tested implicitly 
@@ -262,6 +261,9 @@ contract NonMathTest {
 
   // F	end execution, destroy current contract and send funds to a
   function test_selfdestruct() public pure returns(uint) {
+    assembly {
+      selfdestruct(origin)
+    }
   }
 
   // F	end execution with invalid instruction
@@ -279,41 +281,41 @@ contract NonMathTest {
   // F	test_log with topic t1 and data mem[p..(p+s))
   function test_log1() public returns(uint) {
     assembly {
-      let x:= 1
-      let y:= 2
-      log1(0, 0x40, "x")
+      mstore(0, 1)
+      mstore(0x20, 2)
+      log1(0, 0x20, "x")
     }
   }
 
   // F	test_log with topics t1, t2 and data mem[p..(p+s))
   function test_log2() public returns(uint) {
     assembly {
-      let x:= 1
-      let y:= 2
-      log2(0, 0x40, "x", "y")
+      mstore(0, 1)
+      mstore(0x20, 2)
+      log2(0, 0x20, "x", "y")
     }
   }
 
   // F	test_log with topics t1, t2, t3 and data mem[p..(p+s))
   function test_log3() public returns(uint) {
     assembly {
-      let x:= 1
-      let y:= 2
-      log3(0, 0x40, "x", "y", "z")
+      mstore(0, 1)
+      mstore(0x20, 2)
+      log3(0, 0x20, "x", "y", "z")
     }
   }
 
   // F	test_log with topics t1, t2, t3, t4 and data mem[p..(p+s))
   function test_log4() public returns(uint) {
     assembly {
-      let x:= 1
-      let y:= 2
-      log4(0, 0x40, "x", "y", "z", "a")
+      mstore(0, 1)
+      mstore(0x20, 2)
+      log4(0, 0x20, "x", "y", "z", "a")
     }
   }
 
   // F	transaction sender
-  function test_origin() public view returns(uint) {
+  function test_origin() public view returns(address) {
     assembly {
       mstore(0, origin)
       return(0, 0x20)
