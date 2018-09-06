@@ -69,7 +69,8 @@ func TestNodeInfo(t *testing.T) {
 }
 
 func TestRemoteFullConfig(t *testing.T) {
-	seedNode := &configTypes.NodeInfo{"stage-seed-0", "35.203.143.69", 1975,1973, nil, nil}
+	seedNodes := make([]*configTypes.NodeInfo, 0)
+	seedNodes = append(seedNodes, &configTypes.NodeInfo{"stage-seed-0", "35.203.143.69", 1975,1973, nil, nil})
 
 	delegateNodes := make([]*configTypes.NodeInfo, 0)
 
@@ -77,7 +78,7 @@ func TestRemoteFullConfig(t *testing.T) {
 	delegateNodes = append(delegateNodes, &configTypes.NodeInfo{"stage-delegate-1", "35.233.241.115", 1975, 1973, nil, nil})
 	delegateNodes = append(delegateNodes, &configTypes.NodeInfo{"stage-delegate-2", "35.230.0.126", 1975, 1973, nil, nil})
 
-	configMap := GetNewRemoteConfigs(seedNode, delegateNodes)
+	configMap := GetNewRemoteConfigs(seedNodes, delegateNodes)
 	for _, v := range configMap {
 		fmt.Printf("%s\n", v.ToPrettyJson())
 	}

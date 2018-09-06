@@ -13,7 +13,7 @@ func TestLocalFullConfig(t *testing.T) {
 	delegateStartingPort := 3502
 	seedStartingPort := 1973
 
-	setup(host, nbrSeeds, nbrDelegates, seedStartingPort, delegateStartingPort)
+	SetupDefaultConfig(host, nbrSeeds, nbrDelegates, seedStartingPort, delegateStartingPort)
 
 }
 

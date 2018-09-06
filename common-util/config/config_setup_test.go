@@ -13,3 +13,6 @@ func TestDeleteDB(t *testing.T) {
 	ClearDB(helper.GetDefaultDirectory())
 }
 
+func TestBuildRuntimeCluster(t *testing.T) {
+	CleanAndBuildNewConfig(1, 4, true)
+}

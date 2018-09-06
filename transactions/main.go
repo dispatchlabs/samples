@@ -52,7 +52,6 @@ func main() {
 		}
 	case "executeHttp":
 		sendHttpTransactions(addressToUse)
-
 	case "balance":
 
 		delegates, err := sdk.GetDelegates("localhost:1975")
@@ -77,16 +76,16 @@ func main() {
 			}
 			fmt.Printf("Account from Delegate: %s is \n%s\n", delegate.String(), account.ToPrettyJson())
 		}
-	case "deployContract":
+	case "deployContract", "test":
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
 	case "deployContractFromFile":
 		contractAddress := deployContractFromFile(os.Args[2:])
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
-	case "executeContract", "test":
+	case "executeContract":
 		//executeContract("68500f38586234a98eaa98e2b9c5adf468494c55", "multiParams")
 		//executeContract("f8e84ac2f4d70fbb84d9d33bac70e4da809ae29c", "hi")
-		executeContract("73f184181cfa90354dfcdc837ff946809293f32b", "setAProxy")
+		executeContract("1e72ad32ae750894175ac453118c1a984c8aba5d", "setVar5")
 	case "executeVarArgContract":
 		if len(os.Args) < 4 {
 			fmt.Println("executeVarArgContract must have at least 3 arguments\n")
@@ -135,7 +134,12 @@ func sendHttpTransactions(toAddress string) []string {
 }
 
 func deployContract() string {
-	deployHash, err := sdk.DeploySmartContract(getRandomDelegate(), privateKey, from, helper.GetContractToContractCode(), helper.GetContractToContractAbi())
+	deployHash, err := sdk.DeploySmartContract(
+		getRandomDelegate(),
+		privateKey,
+		from,
+		helper.GetCode(),
+		helper.GetAbi())
 	if err != nil {
 		utils.Error(err)
 	}
