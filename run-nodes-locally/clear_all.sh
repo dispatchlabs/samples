@@ -3,38 +3,25 @@
 cd ~/go/src/github.com/dispatchlabs/disgo
 go build
 
-cd ~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/seed
-rm -f -r db
-rm -f -r config
-rm -f disgo.log
-cp ~/go/src/github.com/dispatchlabs/disgo/disgo .
+install_files() {
+  local cwd=`pwd`
+  echo "Installing files in $cwd"
+  rm -f -r db
+  rm -f -r config
+  rm -f disgo.log
+  cp ~/go/src/github.com/dispatchlabs/disgo/disgo .
+}
 
-cd ~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegate-1
-rm -f -r db
-rm -f -r config
-rm -f disgo.log
-cp ~/go/src/github.com/dispatchlabs/disgo/disgo .
+dir=~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/seed
+[[ -d $dir ]] || mkdir $dir
+cd $dir
+install_files
 
-cd ~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegate-2
-rm -f -r db
-rm -f -r config
-rm -f disgo.log
-cp ~/go/src/github.com/dispatchlabs/disgo/disgo .
+for x in 1 2 3 4 5
+do
+  dir=~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegate-$x
+  [[ -d $dir ]] || mkdir $dir
+  cd $dir
+  install_files
+done
 
-cd ~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegate-3
-rm -f -r db
-rm -f -r config
-rm -f disgo.log
-cp ~/go/src/github.com/dispatchlabs/disgo/disgo .
-
-cd ~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegate-4
-rm -f -r db
-rm -f -r config
-rm -f disgo.log
-cp ~/go/src/github.com/dispatchlabs/disgo/disgo .
-
-cd ~/go/src/github.com/dispatchlabs/samples/run-nodes-locally/delegate-5
-rm -f -r db
-rm -f -r config
-rm -f disgo.log
-cp ~/go/src/github.com/dispatchlabs/disgo/disgo .
