@@ -188,7 +188,7 @@ func executeVarArgContract(contractAddress string, method string, args []string)
 func getReceipt(hash string) *types.Receipt {
 	for {
 		utils.Info("Get Reciept")
-		receipt := helper.GetReceipt(hash, getRandomDelegateURL("receipts"))
+		receipt := helper.GetReceipt(hash, getRandomDelegateURL("transactions"))
 		fmt.Printf("Hash: %s\n%s\n", hash, receipt.ToPrettyJson())
 		if receipt.Status == "Pending" {
 			time.Sleep(time.Second * 5)
@@ -212,9 +212,9 @@ func getRandomDelegate() types.Node {
 }
 
 func getRandomDelegateURL(endpoint string) string {
-	//url := fmt.Sprintf("http://localhost:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
+	url := fmt.Sprintf("http://localhost:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
 	//url := fmt.Sprintf("http://35.203.143.69:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
-	url := fmt.Sprintf("http://35.233.231.3:%d/v1/%s", 1975, endpoint)
+	// url := fmt.Sprintf("http://35.233.231.3:%d/v1/%s", 1975, endpoint)
 	return url
 }
 
