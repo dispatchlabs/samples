@@ -67,3 +67,11 @@ func DeleteDir(dir string) error {
 	}
 	return nil
 }
+
+func GetCurrentWorkingDir() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		utils.Error(err)
+	}
+	return dir
+}
