@@ -11,12 +11,8 @@ key.json
 LOCK
 MANIFEST
 
-run-nodes-locally/seed/*
-run-nodes-locally/delegate-1/*
-run-nodes-locally/delegate-2/*
-run-nodes-locally/delegate-3/*
-run-nodes-locally/delegate-4/*
-run-nodes-locally/delegate-5/*
+run-nodes-locally/seed*/*
+run-nodes-locally/delegate-*/*
 
 *.log
 transactions/transactions.exe
