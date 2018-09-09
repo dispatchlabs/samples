@@ -1,13 +1,13 @@
 pragma solidity ^0.4.24;
 
 contract Deployed {
-    uint private _a;
+    uint256 private _a;
 
-    function setA(uint a) public {
+    function setA(uint256 a) public {
         _a = a;
     }
 
-    function getA() public view returns (uint) {
+    function getA() public view returns (uint256) {
         return _a;
     }
 }

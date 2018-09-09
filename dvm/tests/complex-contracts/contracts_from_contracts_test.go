@@ -16,7 +16,7 @@ import (
 )
 
 var nrOfServices = 0
-var delegateUrl = "http://127.0.0.1:1175/v1"
+var delegateUrl = "http://127.0.0.1:1275/v1"
 
 func Test_ContractPublishAndExecuteSimpleContract(t *testing.T) {
 	// utils.InitMainPackagePath()
@@ -35,7 +35,10 @@ func Test_ContractPublishAndExecuteSimpleContract(t *testing.T) {
 	// server := bootstrap.NewServer()
 	// server.Go()
 
-	allServicesInitFinished()
+	// allServicesInitFinished()
+
+	// deployContract()
+	executeMethod()
 }
 
 func allServicesInitFinished() {
@@ -49,34 +52,34 @@ func allServicesInitFinished() {
 	const timeout = 1
 
 	// go func() {
-	time.Sleep(timeout * time.Second)
-	tx := deployContract()
+	// time.Sleep(timeout * time.Second)
+	// tx := deployContract()
 
-	time.Sleep(3 * time.Second)
-	deployRcpt := getReceipt(tx.Hash, fmt.Sprintf("%s/receipts", delegateUrl))
+	// time.Sleep(3 * time.Second)
+	// deployRcpt := getReceipt(tx.Hash, fmt.Sprintf("%s/receipts", delegateUrl))
 
-	fmt.Println(fmt.Sprintf("CONTRACT-ADDRESS: %s", deployRcpt.ContractAddress))
+	// fmt.Println(fmt.Sprintf("CONTRACT-ADDRESS: %s", deployRcpt.ContractAddress))
 	// }()
 
 	// ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~ ~~~~
 
 	// go func() {
-	// time.Sleep(timeout * time.Second)
-	// tx := executeMethod()
+	time.Sleep(timeout * time.Second)
+	tx := executeMethod()
 
-	// time.Sleep(3 * time.Second)
-	// executeRcpt := getReceipt(tx.Hash, fmt.Sprintf("%s/receipts", delegateUrl))
+	time.Sleep(3 * time.Second)
+	executeRcpt := getReceipt(tx.Hash, fmt.Sprintf("%s/receipts", delegateUrl))
 
-	// fmt.Println(fmt.Sprintf("CALL-RECEIPT: %v", executeRcpt))
+	fmt.Println(fmt.Sprintf("CALL-RECEIPT: %v", executeRcpt))
 
-	// time.Sleep(120 * time.Second)
+	time.Sleep(120 * time.Second)
 	// }()
 }
 
 func deployContract() *types.Transaction {
 	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
 	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
-	var code = "608060405234801561001057600080fd5b5060df8061001f6000396000f3006080604052600436106049576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063d46300fd14604e578063ee919d50146076575b600080fd5b348015605957600080fd5b50606060a0565b6040518082815260200191505060405180910390f35b348015608157600080fd5b50609e6004803603810190808035906020019092919050505060a9565b005b60008054905090565b80600081905550505600a165627a7a723058205906547745a52855a1b22685e079cbdec04bad5d24c4c243d60837b39fb845890029"
+	var code = getCompiledCode()
 	var theTime = utils.ToMilliSeconds(time.Now())
 
 	var tx, _ = types.NewDeployContractTransaction(
@@ -99,13 +102,26 @@ func executeMethod() *types.Transaction {
 	// Taken from Genesis
 	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
 	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
-	var to = "3605940fd59acf673587f1249f19dbb138c0cb73"
+	var to = "da8c13fc708d85c8fd2b5d5975e7300faae90a92"
 
 	var theTime = utils.ToMilliSeconds(time.Now())
-	var method = "setA"
+
+	// var method = "getA"
+	// var params = make([]interface{}, 0)
+	// params[0] = 1
+
+	// var method = "setA"
+	// var params = make([]interface{}, 1)
+	// params[0] = 54321
+
+	// var method = "setAProxy"
+	// var params = make([]interface{}, 2)
+	// params[0] = "d914892762206c3f34a16ce6efb276026a89e820" // crypto.GetAddressBytes("047cc7359e7706260b837b70e8f1d62ee972b557")
+	// params[1] = 20
+
+	var method = "getAProxy"
 	var params = make([]interface{}, 1)
-	// params[0] = "05394c37f2f2e0c1598914a1d5181d46a6202021"
-	params[0] = 5
+	params[0] = "d914892762206c3f34a16ce6efb276026a89e820" // crypto.GetAddressBytes("047cc7359e7706260b837b70e8f1d62ee972b557")
 
 	var tx, _ = types.NewExecuteContractTransaction(
 		privateKey,
@@ -123,37 +139,50 @@ func executeMethod() *types.Transaction {
 	// dapos.GetDAPoSService().Temp_ProcessTransaction(tx)
 }
 
+func getCompiledCode() string {
+	return "608060405234801561001057600080fd5b5061025f806100206000396000f30060806040526004361061004c576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063c66f9daf14610051578063f474bd9e146100a8575b600080fd5b34801561005d57600080fd5b50610092600480360381019080803573ffffffffffffffffffffffffffffffffffffffff1690602001909291905050506100f5565b6040518082815260200191505060405180910390f35b3480156100b457600080fd5b506100f3600480360381019080803573ffffffffffffffffffffffffffffffffffffffff169060200190929190803590602001909291905050506101a2565b005b6000808290508073ffffffffffffffffffffffffffffffffffffffff1663d46300fd6040518163ffffffff167c0100000000000000000000000000000000000000000000000000000000028152600401602060405180830381600087803b15801561015f57600080fd5b505af1158015610173573d6000803e3d6000fd5b505050506040513d602081101561018957600080fd5b8101908080519060200190929190505050915050919050565b60008290508073ffffffffffffffffffffffffffffffffffffffff1663ee919d50836040518263ffffffff167c010000000000000000000000000000000000000000000000000000000002815260040180828152602001915050600060405180830381600087803b15801561021657600080fd5b505af115801561022a573d6000803e3d6000fd5b505050505050505600a165627a7a7230582095716c21ef28aca7f84be244bc34b9a6c4e292d75d3067060f6fd2a486a1bd640029"
+}
+
 func getAbi() string {
 	return `[
-	{
-		"constant": true,
-		"inputs": [],
-		"name": "getA",
-		"outputs": [
-			{
-				"name": "",
-				"type": "uint256"
-			}
-		],
-		"payable": false,
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"constant": false,
-		"inputs": [
-			{
-				"name": "a",
-				"type": "uint256"
-			}
-		],
-		"name": "setA",
-		"outputs": [],
-		"payable": false,
-		"stateMutability": "nonpayable",
-		"type": "function"
-	}
-]`
+		{
+			"constant": true,
+			"inputs": [
+				{
+					"name": "originalContract",
+					"type": "address"
+				}
+			],
+			"name": "getAProxy",
+			"outputs": [
+				{
+					"name": "",
+					"type": "uint256"
+				}
+			],
+			"payable": false,
+			"stateMutability": "view",
+			"type": "function"
+		},
+		{
+			"constant": false,
+			"inputs": [
+				{
+					"name": "originalContract",
+					"type": "address"
+				},
+				{
+					"name": "a",
+					"type": "uint256"
+				}
+			],
+			"name": "setAProxy",
+			"outputs": [],
+			"payable": false,
+			"stateMutability": "nonpayable",
+			"type": "function"
+		}
+	]`
 }
 
 func postTx(tx *types.Transaction, endpoint string) {
