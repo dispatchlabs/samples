@@ -1,8 +1,8 @@
 #!/bin/sh
 solc --version
 
-rm -rf CallDeployed
-solc -o CallDeployed --abi --bin --pretty-json CallDeployed.sol
+solc --evm-version byzantium --combined-json abi,bin,opcodes --pretty-json CallDeployed.sol > CallDeployed.json
+solc --evm-version byzantium --combined-json abi,bin,opcodes --pretty-json CallDeployed-v2.sol > CallDeployed-v2.json
+solc --evm-version byzantium --combined-json abi,bin,opcodes --pretty-json Deployed.sol > Deployed.json
 
-rm -rf Deployed
-solc -o Deployed     --abi --bin --pretty-json Deployed.sol
+ls -la
