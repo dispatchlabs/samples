@@ -24,18 +24,19 @@ import (
 const SeedsCount = 1
 
 // DelegatesCount - nr of DELEGATE(s) to spawn
-const DelegatesCount = 3
+const DelegatesCount = 5
 
 // NamePrefix - VM name prefix
-const NamePrefix = "nicolae-testing"
+const NamePrefix = "perf-test-9-11"
 
 // CodeBranch - Brnach of the code to deploy
-const CodeBranch = "dev"
+const CodeBranch = "master"
 
 // VMConfig - config for a VM in Google Cloud
 type VMConfig struct {
 	ImageProject        string
 	ImageFamily         string
+	MachineTemplate     string
 	MachineType         string
 	Tags                string
 	NamePrefix          string
@@ -157,6 +158,33 @@ func getOSE() string {
 	return ose
 }
 
+func getVmCreateString(vmConfig *VMConfig, name string) string {
+	var createVM string
+
+	if len(vmConfig.MachineTemplate) > 0 {
+		createVM = fmt.Sprintf(
+			"gcloud compute instances create %s --source-instance-template %s --image-project %s --image-family %s --tags %s",
+			name,
+			vmConfig.MachineTemplate,
+			vmConfig.ImageProject,
+			vmConfig.ImageFamily,
+			vmConfig.Tags,
+		)
+	} else {
+
+		// Command to CREATE new VM Instance
+		createVM = fmt.Sprintf(
+			"gcloud compute instances create %s --image-project %s --image-family %s --machine-type %s --tags %s",
+			name,
+			vmConfig.ImageProject,
+			vmConfig.ImageFamily,
+			vmConfig.MachineType,
+			vmConfig.Tags,
+		)
+	}
+
+	return createVM
+}
 func createDisgoNodeVMs(count int, vmConfig *VMConfig) {
 	var wg sync.WaitGroup
 
@@ -164,14 +192,9 @@ func createDisgoNodeVMs(count int, vmConfig *VMConfig) {
 		var vmName = fmt.Sprintf("%s-%d", vmConfig.NamePrefix, i)
 
 		// Command to CREATE new VM Instance
-		var createVM = fmt.Sprintf(
-			"gcloud compute instances create %s --image-project %s --image-family %s --machine-type %s --tags %s",
-			vmName,
-			vmConfig.ImageProject,
-			vmConfig.ImageFamily,
-			vmConfig.MachineType,
-			vmConfig.Tags,
-		)
+		var createVM = getVmCreateString(vmConfig, vmName)
+
+		fmt.Println(createVM)
 
 		// Command to DOWNLOAD BASH scripts to the newly created VM
 		var downloadScriptFiles = fmt.Sprintf(
@@ -211,16 +234,9 @@ func createDisgoNodeVMs(count int, vmConfig *VMConfig) {
 
 func createScandisVMs(vmConfig *VMConfig, seedVmName string) {
 	var wg sync.WaitGroup
+	var createVM string
 
-	// Command to CREATE new VM Instance
-	var createVM = fmt.Sprintf(
-		"gcloud compute instances create %s --image-project %s --image-family %s --machine-type %s --tags %s",
-		vmConfig.NamePrefix,
-		vmConfig.ImageProject,
-		vmConfig.ImageFamily,
-		vmConfig.MachineType,
-		vmConfig.Tags,
-	)
+	createVM = getVmCreateString(vmConfig, seedVmName)
 
 	// Command to DOWNLOAD BASH scripts to the newly created VM
 	var downloadScriptFiles = fmt.Sprintf(
@@ -439,9 +455,13 @@ func configDelegateVMs(
 }
 
 func getDefaultVMConfig() VMConfig {
+
+	// NOTE:  MachineTemplate overrides MachineType
+
 	return VMConfig{
 		ImageProject:    "debian-cloud",
 		ImageFamily:     "debian-9",
+		MachineTemplate: "perf-test-1",
 		MachineType:     "n1-standard-2",
 		Tags:            "disgo-node",
 		NamePrefix:      NamePrefix + "-abracadabra",
