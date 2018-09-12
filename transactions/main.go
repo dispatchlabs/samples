@@ -95,8 +95,8 @@ func main() {
 	case "deployAndExecute", "test":
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
-		executeContract(contractAddress, "intParam")
-
+		//executeContract(contractAddress, "intParam")
+		NewManualExecuteTx(contractAddress, "intParam")
 	default:
 		fmt.Errorf("Invalid argument %s\n", arg)
 	}
@@ -179,6 +179,32 @@ func executeContract(contractAddress string, method string) string {
 	time.Sleep(3 * time.Second)
 	getReceipt(hash)
 	return hash
+}
+
+func NewManualExecuteTx(toAddress string, method string) *types.Transaction {
+	utils.Info("GetNewExecuteTx")
+	// Taken from Genesis
+	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
+	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
+
+	var tx, _ = types.NewExecuteContractTransaction(
+		privateKey,
+		from,
+		toAddress,
+		method,
+		helper.GetParamsForMethod(method),
+		utils.ToMilliSeconds(time.Now()),
+	)
+	//tx.Abi = helper.GetAbi()
+	tx.Value = 0
+	tx.Code = ""
+	tx.FromName = ""
+	tx.ToName = ""
+	helper.PostTx(tx, "http://localhost:1575/v1/transactions")
+
+	time.Sleep(queueTimeout)
+	return tx
+
 }
 
 func executeVarArgContract(contractAddress string, abi_file string, method string, args []string) {
