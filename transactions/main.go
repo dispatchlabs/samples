@@ -82,20 +82,20 @@ func main() {
 	case "deployContractFromFile":
 		contractAddress := deployContractFromFile(os.Args[2:])
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
-	case "executeContract", "test":
+	case "executeContract":
 		//executeContract("68500f38586234a98eaa98e2b9c5adf468494c55", "multiParams")
 		//executeContract("f8e84ac2f4d70fbb84d9d33bac70e4da809ae29c", "hi")
-		executeContract("1e72ad32ae750894175ac453118c1a984c8aba5d", "getMultiReturn")
+		executeContract("319afcd1c43f5b9c00d681d141a303b47f899927", "getMultiReturns")
 	case "executeVarArgContract":
 		if len(os.Args) < 4 {
 			fmt.Println("executeVarArgContract must have at least 3 arguments\n")
 			break
 		}
 		executeVarArgContract(os.Args[2], os.Args[3], os.Args[4], os.Args[5:])
-	case "deployAndExecute":
+	case "deployAndExecute", "test":
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
-		executeContract(contractAddress, "plusOne")
+		executeContract(contractAddress, "intParam")
 
 	default:
 		fmt.Errorf("Invalid argument %s\n", arg)
