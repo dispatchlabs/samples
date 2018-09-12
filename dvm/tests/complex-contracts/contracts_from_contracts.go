@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -19,12 +18,12 @@ var delegateUrl = "http://127.0.0.1:1175/v1"
 var contract_deploy_Deployed = false
 var contract_deploy_CallDeployed = false
 var contract_execute_setA = false
-var contract_execute_getA = false
+var contract_execute_getA = true
 var contract_execute_setAProxy = false
-var contract_execute_getAProxy = true
+var contract_execute_getAProxy = false
 
-var smartContractAddress_Deployed = "793a2bb2d0922a26ffa230626d81cbc7e7e79010"
-var smartContractAddress_CallDeployed = "163308477c15c0133bb4fd57054473164d89c7e1"
+var smartContractAddress_Deployed = "05c04028ddd1488c885ee3b33bcd90f24921b4ca"
+var smartContractAddress_CallDeployed = "e0214e30ef1f54e87a346b4885ea3f4e8fc2454a"
 
 func main() {
 	if contract_deploy_Deployed {
@@ -119,7 +118,7 @@ func deployContract(compiledCode string, abi string) *types.Transaction {
 		privateKey,
 		from,
 		compiledCode,
-		hex.EncodeToString([]byte(abi)),
+		abi, // hex.EncodeToString([]byte(abi)),
 		theTime,
 	)
 
