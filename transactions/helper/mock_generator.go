@@ -171,6 +171,9 @@ func getVariableParamsForContract(args []string) []interface{} {
 			argList = append(argList, i64)
 		case "string":
 			argList = append(argList, val)
+		case "bytes":
+			byteArray := []byte(val)
+			argList = append(argList, byteArray)
 		case "bool":
 			if val == "true" {
 				argList = append(argList, true)
