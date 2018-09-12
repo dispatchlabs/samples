@@ -20,11 +20,11 @@ var contract_deploy_Deployed = false
 var contract_deploy_CallDeployed = false
 var contract_execute_setA = false
 var contract_execute_getA = false
-var contract_execute_setAProxy = true
-var contract_execute_getAProxy = false
+var contract_execute_setAProxy = false
+var contract_execute_getAProxy = true
 
-var smartContractAddress_Deployed = "ee9277c42304bdc00a13ceaf335a52bc07fb47f2"
-var smartContractAddress_CallDeployed = "466a94bcfe4e4d26ac430af609fe367c22c6950e"
+var smartContractAddress_Deployed = "793a2bb2d0922a26ffa230626d81cbc7e7e79010"
+var smartContractAddress_CallDeployed = "163308477c15c0133bb4fd57054473164d89c7e1"
 
 func main() {
 	if contract_deploy_Deployed {
