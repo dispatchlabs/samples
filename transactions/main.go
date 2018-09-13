@@ -87,7 +87,7 @@ func main() {
 			fmt.Println("executeVarArgContract must have at least 3 arguments\n")
 			break
 		}
-		executeVarArgContract(os.Args[2], os.Args[3], os.Args[4], os.Args[5:])
+		executeVarArgContract(os.Args[2], os.Args[3], os.Args[4:])
 	case "deployAndExecute":
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
@@ -172,14 +172,13 @@ func executeContract(contractAddress string, method string) {
 	//getReceipt(tx.Hash)
 }
 
-func executeVarArgContract(contractAddress string, abi_file string, method string, args []string) {
+func executeVarArgContract(contractAddress string, method string, args []string) {
 	fmt.Println(contractAddress)
-	fmt.Println(abi_file)
 	fmt.Println(method)
 	fmt.Println(args)
 
 	var tx *types.Transaction
-	tx = helper.GetNewExecuteTxWithVarableParams(contractAddress, abi_file, method, args)
+	tx = helper.GetNewExecuteTxWithVarableParams(contractAddress, method, args)
 
 	helper.PostTx(tx, getRandomDelegateURL("transactions"))
 	time.Sleep(queueTimeout)
@@ -189,7 +188,7 @@ func executeVarArgContract(contractAddress string, abi_file string, method strin
 func getReceipt(hash string) *types.Receipt {
 	for {
 		utils.Info("Get Reciept")
-		receipt := helper.GetReceipt(hash, getRandomDelegateURL("receipts"))
+		receipt := helper.GetReceipt(hash, getRandomDelegateURL("transactions"))
 		fmt.Printf("Hash: %s\n%s\n", hash, receipt.ToPrettyJson())
 		if receipt.Status == "Pending" {
 			time.Sleep(time.Second * 5)
@@ -212,10 +211,10 @@ func getRandomDelegate() types.Node {
 	return delegates[rand]
 }
 
-func getRandomDelegateURL(endpoint string) (string) {
-	//url := fmt.Sprintf("http://localhost:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
+func getRandomDelegateURL(endpoint string) string {
+	url := fmt.Sprintf("http://localhost:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
 	//url := fmt.Sprintf("http://35.203.143.69:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
-	url := fmt.Sprintf("http://35.233.231.3:%d/v1/%s", 1975, endpoint)
+	// url := fmt.Sprintf("http://35.233.231.3:%d/v1/%s", 1975, endpoint)
 	return url
 }
 

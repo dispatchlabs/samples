@@ -133,9 +133,9 @@ contract MathTest {
 				}
 
 				/* This doesn't trigger the opcode */
-				function get_byte(bytes b) public pure returns (byte) {
-								return b[4];
-				}
+				// function get_byte(bytes b) public pure returns (byte) {
+				// 				return b[4];
+				// }
 
 				function shl(uint x, uint y) public pure returns (uint) {
 								return x << y;				
