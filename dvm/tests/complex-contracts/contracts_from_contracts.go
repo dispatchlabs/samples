@@ -22,8 +22,8 @@ var contract_execute_getA = true
 var contract_execute_setAProxy = false
 var contract_execute_getAProxy = false
 
-var smartContractAddress_Deployed = "05c04028ddd1488c885ee3b33bcd90f24921b4ca"
-var smartContractAddress_CallDeployed = "e0214e30ef1f54e87a346b4885ea3f4e8fc2454a"
+var smartContractAddress_Deployed = "e2370db9af7b08f9b1258e6f5d1860fe8dc585b5"
+var smartContractAddress_CallDeployed = "efd00ce211fa0a4eb658108b5d3e95cd18ef3430"
 
 func main() {
 	if contract_deploy_Deployed {
@@ -170,7 +170,7 @@ func contractExecute_setA() {
 	var smartContractAddress = smartContractAddress_Deployed
 	var method = "setA"
 	var params = make([]interface{}, 1)
-	params[0] = 9
+	params[0] = 15
 
 	executeMethod(smartContractAddress, method, params)
 
@@ -186,7 +186,7 @@ func contractExecute_setAProxy() {
 	var smartContractAddress = smartContractAddress_CallDeployed
 	var method = "setAProxy"
 	var params = make([]interface{}, 2)
-	params[0] = smartContractAddress_Deployed // crypto.GetAddressBytes("047cc7359e7706260b837b70e8f1d62ee972b557")
+	params[0] = smartContractAddress_Deployed
 	params[1] = 20
 
 	executeMethod(smartContractAddress, method, params)
@@ -195,7 +195,7 @@ func contractExecute_getAProxy() {
 	var smartContractAddress = smartContractAddress_CallDeployed
 	var method = "getAProxy"
 	var params = make([]interface{}, 1)
-	params[0] = smartContractAddress_Deployed // crypto.GetAddressBytes("047cc7359e7706260b837b70e8f1d62ee972b557")
+	params[0] = smartContractAddress_Deployed
 
 	executeMethod(smartContractAddress, method, params)
 }
