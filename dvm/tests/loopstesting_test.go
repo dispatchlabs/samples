@@ -1,7 +1,6 @@
 package tests
 
 import (
-	"encoding/hex"
 	"fmt"
 	"testing"
 	"time"
@@ -87,106 +86,106 @@ func executeMethod_IncHundredTimes() {
 	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
 	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
 	var to = "627e04f584776e7631be4ffc424ed44fece8418c"
-	var abi = `[
-		{
-			"constant": true,
-			"inputs": [],
-			"name": "IncInfiniteTimes",
-			"outputs": [
-				{
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"payable": false,
-			"stateMutability": "pure",
-			"type": "function"
-		},
-		{ 
-			"constant": true,
-			"inputs": [],
-			"name": "IncBilTimesForFor",
-			"outputs": [
-				{
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"payable": false,
-			"stateMutability": "pure",
-			"type": "function"
-		},
-		{
-			"constant": true,
-			"inputs": [],
-			"name": "IncBilTimesForForFor",
-			"outputs": [
-				{
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"payable": false,
-			"stateMutability": "pure",
-			"type": "function"
-		},
-		{
-			"constant": true,
-			"inputs": [],
-			"name": "IncBilTimes",
-			"outputs": [
-				{
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"payable": false,
-			"stateMutability": "pure",
-			"type": "function"
-		},
-		{
-			"constant": true,
-			"inputs": [],
-			"name": "IncThousandTimes",
-			"outputs": [
-				{
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"payable": false,
-			"stateMutability": "pure",
-			"type": "function"
-		},
-		{
-			"constant": true,
-			"inputs": [],
-			"name": "IncHundredTimes",
-			"outputs": [
-				{
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"payable": false,
-			"stateMutability": "pure",
-			"type": "function"
-		},
-		{
-			"constant": true,
-			"inputs": [],
-			"name": "IncMilTimes",
-			"outputs": [
-				{
-					"name": "",
-					"type": "uint256"
-				}
-			],
-			"payable": false,
-			"stateMutability": "pure",
-			"type": "function"
-		}
-	]`
+	// var abi = `[
+	// 	{
+	// 		"constant": true,
+	// 		"inputs": [],
+	// 		"name": "IncInfiniteTimes",
+	// 		"outputs": [
+	// 			{
+	// 				"name": "",
+	// 				"type": "uint256"
+	// 			}
+	// 		],
+	// 		"payable": false,
+	// 		"stateMutability": "pure",
+	// 		"type": "function"
+	// 	},
+	// 	{
+	// 		"constant": true,
+	// 		"inputs": [],
+	// 		"name": "IncBilTimesForFor",
+	// 		"outputs": [
+	// 			{
+	// 				"name": "",
+	// 				"type": "uint256"
+	// 			}
+	// 		],
+	// 		"payable": false,
+	// 		"stateMutability": "pure",
+	// 		"type": "function"
+	// 	},
+	// 	{
+	// 		"constant": true,
+	// 		"inputs": [],
+	// 		"name": "IncBilTimesForForFor",
+	// 		"outputs": [
+	// 			{
+	// 				"name": "",
+	// 				"type": "uint256"
+	// 			}
+	// 		],
+	// 		"payable": false,
+	// 		"stateMutability": "pure",
+	// 		"type": "function"
+	// 	},
+	// 	{
+	// 		"constant": true,
+	// 		"inputs": [],
+	// 		"name": "IncBilTimes",
+	// 		"outputs": [
+	// 			{
+	// 				"name": "",
+	// 				"type": "uint256"
+	// 			}
+	// 		],
+	// 		"payable": false,
+	// 		"stateMutability": "pure",
+	// 		"type": "function"
+	// 	},
+	// 	{
+	// 		"constant": true,
+	// 		"inputs": [],
+	// 		"name": "IncThousandTimes",
+	// 		"outputs": [
+	// 			{
+	// 				"name": "",
+	// 				"type": "uint256"
+	// 			}
+	// 		],
+	// 		"payable": false,
+	// 		"stateMutability": "pure",
+	// 		"type": "function"
+	// 	},
+	// 	{
+	// 		"constant": true,
+	// 		"inputs": [],
+	// 		"name": "IncHundredTimes",
+	// 		"outputs": [
+	// 			{
+	// 				"name": "",
+	// 				"type": "uint256"
+	// 			}
+	// 		],
+	// 		"payable": false,
+	// 		"stateMutability": "pure",
+	// 		"type": "function"
+	// 	},
+	// 	{
+	// 		"constant": true,
+	// 		"inputs": [],
+	// 		"name": "IncMilTimes",
+	// 		"outputs": [
+	// 			{
+	// 				"name": "",
+	// 				"type": "uint256"
+	// 			}
+	// 		],
+	// 		"payable": false,
+	// 		"stateMutability": "pure",
+	// 		"type": "function"
+	// 	}
+	// ]`
 
 	var theTime = utils.ToMilliSeconds(time.Now())
 	var method = "IncBilTimes"
@@ -196,7 +195,7 @@ func executeMethod_IncHundredTimes() {
 		privateKey,
 		from,
 		to,
-		hex.EncodeToString([]byte(abi)),
+		// hex.EncodeToString([]byte(abi)),
 		method,
 		params,
 		theTime,

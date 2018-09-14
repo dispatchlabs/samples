@@ -6,7 +6,7 @@ https://github.com/ethereum/mist
 	Mist Browser
 	Ethereum wallet and Dapp browser
 
-https://github.com/ethereum/go-ethereum/wiki/geth
+https://github.com/dispatchlabs/disgo/dvm/ethereum/wiki/geth
 	Go implementation of the Ethereum protocol.
 	Runs a full Ethereum node. Provides JS console interface
 
