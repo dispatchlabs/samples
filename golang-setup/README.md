@@ -18,16 +18,16 @@
 ##### Debian / Ubunbu
 - `sudo apt-get update`
 - `sudo apt-get upgrade`
-- `curl -O https://dl.google.com/go/go1.9.4.linux-amd64.tar.gz`
-- `tar -xzvf go1.9.4.linux-amd64.tar.gz`
+- `curl -O https://dl.google.com/go/go1.10.3.linux-amd64.tar.gz`
+- `tar -xzvf go1.10.3.linux-amd64.tar.gz`
 - `sudo mv go /usr/local`
 
 ##### Arch
 - `sudo pacman -S go go-tools`
 
 ##### Mac
-- `curl -O https://dl.google.com/go/go1.9.4.darwin-amd64.pkg`
-- Execute `sudo installer -pkg /your/path/go1.9.4.darwin-amd64.pkg -target /` then next/next/finish (you can find the path using the pwd command)
+- `curl -O https://dl.google.com/go/go1.10.3.darwin-amd64.pkg`
+- Execute `sudo installer -pkg /your/path/go1.10.3.darwin-amd64.pkg -target /` then next/next/finish (you can find the path using the pwd command)
 - __OR__
 - `brew install go`
 
