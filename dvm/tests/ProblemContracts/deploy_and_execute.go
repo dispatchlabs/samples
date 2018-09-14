@@ -16,7 +16,7 @@ var delegateUrl = "http://127.0.0.1:1175/v1"
 
 var isDeploy = false
 
-var smartContractAddress = "0a7f4c1abd1b31a00cfb1bb759709b187dd37084"
+var smartContractAddress = "ffa8efe11deea1448dd1d037ca6c7255d56698f6"
 
 func main() {
 	if isDeploy {
@@ -27,8 +27,8 @@ func main() {
 }
 
 func deployContract() {
-	var compiledCode = "6080604052348015600f57600080fd5b5060a48061001e6000396000f300608060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063d2756dc0146044575b600080fd5b348015604f57600080fd5b506056606c565b6040518082815260200191505060405180910390f35b60004260005260206000f300a165627a7a72305820ee5cc8e4e4eb6f1cdc13bcfb018a314b1d89603f28abaf1ec47cbd2d19df08120029"
-	var abi = "[{\"constant\":true,\"inputs\":[],\"name\":\"test_timestamp\",\"outputs\":[{\"name\":\"\",\"type\":\"uint256\"}],\"payable\":false,\"stateMutability\":\"view\",\"type\":\"function\"}]"
+	var abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"x\",\"type\":\"int256\"},{\"name\":\"y\",\"type\":\"int256\"}],\"name\":\"sdiv\",\"outputs\":[{\"name\":\"\",\"type\":\"int256\"}],\"payable\":false,\"stateMutability\":\"nonpayable\",\"type\":\"function\"}]"
+	var compiledCode = "608060405234801561001057600080fd5b5060c38061001f6000396000f300608060405260043610603f576000357c0100000000000000000000000000000000000000000000000000000000900463ffffffff168063397b3a49146044575b600080fd5b348015604f57600080fd5b5060766004803603810190808035906020019092919080359060200190929190505050608c565b6040518082815260200191505060405180910390f35b6000829050929150505600a165627a7a72305820a817b6c0b7eeae931c5d8bc17aaa632883d3353c6e355fa0f038287ff1ebdefc0029"
 
 	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
 	var from = "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
@@ -46,8 +46,10 @@ func deployContract() {
 }
 
 func executeContract() {
-	var method = "test_timestamp"
-	var params = make([]interface{}, 0)
+	var method = "sdiv"
+	var params = make([]interface{}, 2)
+	params[0] = -3
+	params[1] = 4
 
 	// Taken from Genesis
 	var privateKey = "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb25a"
