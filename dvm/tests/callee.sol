@@ -1,6 +1,6 @@
 // Tests contract -> contract opcodes. This is the created contract that gets
 // called by call, callcode, delegatecall, and staticcall
-pragma solidity ^0.4.0;
+pragma solidity ^0.4.24;
 
 contract Callee {
   address public _sender;
