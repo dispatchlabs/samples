@@ -17,7 +17,7 @@ var privateKey 	= "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb
 var from 		= "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
 
 var delay = time.Millisecond * 2
-var txCount = 1
+var txCount = 100
 var queueEndpoint = "/v1/queue"
 var testMap map[string]time.Time
 var queueTimeout = time.Second * 5
@@ -30,7 +30,7 @@ func main() {
 	switch arg {
 	case "setup":
 		config.SetUp(5, 3500)
-	case "execute":
+	case "execute", "test":
 		//transaction := sendGrpcTransactions(addressToUse)
 		hashes := sendHttpTransactions(addressToUse)
 
@@ -85,18 +85,18 @@ func main() {
 	case "executeContract":
 		//executeContract("68500f38586234a98eaa98e2b9c5adf468494c55", "multiParams")
 		//executeContract("f8e84ac2f4d70fbb84d9d33bac70e4da809ae29c", "hi")
-		executeContract("319afcd1c43f5b9c00d681d141a303b47f899927", "getMultiReturns")
+		executeContract("9b4a6a6d26916bae7bfde23ac0fc6cf6e1273d4f", "intParams")
 	case "executeVarArgContract":
 		if len(os.Args) < 4 {
 			fmt.Println("executeVarArgContract must have at least 3 arguments\n")
 			break
 		}
 		executeVarArgContract(os.Args[2], os.Args[3], os.Args[4], os.Args[5:])
-	case "deployAndExecute", "test":
+	case "deployAndExecute":
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
-		//executeContract(contractAddress, "intParam")
-		NewManualExecuteTx(contractAddress, "intParam")
+		executeContract(contractAddress, "intParam")
+		//NewManualExecuteTx(contractAddress, "intParam")
 	default:
 		fmt.Errorf("Invalid argument %s\n", arg)
 	}
@@ -176,8 +176,9 @@ func executeContract(contractAddress string, method string) string {
 	if err != nil {
 		utils.Error(err)
 	}
-	time.Sleep(3 * time.Second)
-	getReceipt(hash)
+	fmt.Printf("Hash: %s", hash)
+	//time.Sleep(3 * time.Second)
+	//getReceipt(hash)
 	return hash
 }
 
@@ -221,13 +222,15 @@ func executeVarArgContract(contractAddress string, abi_file string, method strin
 	getReceipt(hash)
 }
 
-func getReceipt(hash string) *types.Receipt {
+func getReceipt(hash string) types.Receipt {
 	for {
 		utils.Info("Get Reciept")
-		receipt, err := sdk.GetReceipt(getRandomDelegate(), hash)
+		tx, err := sdk.GetTransaction(getRandomDelegate(), hash)
 		if err != nil {
 			utils.Error(err)
 		}
+		fmt.Printf(tx.String())
+		receipt := tx.Receipt
 		fmt.Printf("Hash: %s\n%s\n", hash, receipt.ToPrettyJson())
 		if receipt.Status == "Pending" {
 			time.Sleep(time.Second * 5)

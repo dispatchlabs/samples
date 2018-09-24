@@ -27,6 +27,15 @@ func getOSE() string {
 	return ose
 }
 
+func CheckCommand(command string) {
+	path, err := exec.LookPath(command)
+	if err != nil {
+		fmt.Printf("didn't find '%s' executable\n", command)
+	} else {
+		fmt.Printf("'%s' executable is in '%s'\n", command, path)
+	}
+}
+
 func Exec(command string) error {
 	osc := getOSC()
 	ose := getOSE()
@@ -34,6 +43,21 @@ func Exec(command string) error {
 	//cmd.Env = append(os.Environ())
 
 	err := exec.Command(osc, ose, command).Run()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ExecFromDir(command, dir string) error {
+	osc := getOSC()
+	ose := getOSE()
+
+	cmd := exec.Command(osc, ose, command)
+	cmd.Dir = dir
+	bytes, err := cmd.Output()
+	fmt.Printf("OUTPUT: %s\n", string(bytes))
+	//err := cmd.Run()
 	if err != nil {
 		return err
 	}

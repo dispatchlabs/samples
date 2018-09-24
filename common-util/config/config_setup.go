@@ -27,7 +27,10 @@ func CleanAndBuildNewConfig(nbrSeeds, nbrDelegates int, restricted bool) {
 
 func RefreshDisgoExecutable(baseDir string) {
 	//build latest code
-	BuildDisgoExecutable()
+	err := BuildDisgoExecutable()
+	if err != nil {
+		panic(err)
+	}
 
 	//update with newest disgo build for all directories
 	files, err := ioutil.ReadDir(baseDir)
@@ -66,17 +69,22 @@ func ClearDB(baseDir string) {
 	}
 }
 
-func BuildDisgoExecutable() {
-	cmd := fmt.Sprintf("cd %s; go build", helper.GetDisgoDirectory())
-	fmt.Println(cmd)
-	err := helper.Exec(cmd)
+func BuildDisgoExecutable() error {
+	util.DeleteFile(fmt.Sprintf("%s/disgo", helper.GetDisgoDirectory()))
+	helper.CheckCommand("go")
+	cmd := "go build"
+	//cmd := "ls -al"
+	err := helper.ExecFromDir(cmd, helper.GetDisgoDirectory())
 	if err != nil {
 		utils.Error(err)
+		return err
 	}
+	return nil
 }
 
 func updateDisgoExecutable(nodeName string) {
 	nodeDir := helper.GetDefaultDirectory() + string(os.PathSeparator) + nodeName + string(os.PathSeparator)
+	//util.DeleteFile(fmt.Sprintf("%sdisgo", nodeDir))
 
 	cmd := fmt.Sprintf("cp %s/disgo %s", helper.GetDisgoDirectory(), nodeDir)
 	fmt.Println(cmd)

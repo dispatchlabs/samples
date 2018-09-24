@@ -41,6 +41,15 @@ func WriteFile(dir, fileName, content string) error {
 	return nil
 }
 
+func DeleteFile(file string) error {
+	err := os.Remove(file)
+	if err != nil {
+		utils.Error(err)
+		return err
+	}
+	return nil
+}
+
 func DeleteSubDirs(dir string) error {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
