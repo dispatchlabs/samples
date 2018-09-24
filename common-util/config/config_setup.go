@@ -27,6 +27,9 @@ func CleanAndBuildNewConfig(nbrSeeds, nbrDelegates int, restricted bool) {
 
 func RefreshDisgoExecutable(baseDir string) {
 	//build latest code
+	if baseDir == "" {
+		baseDir = helper.GetDefaultDirectory()
+	}
 	err := BuildDisgoExecutable()
 	if err != nil {
 		panic(err)

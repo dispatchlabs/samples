@@ -6,7 +6,7 @@ import (
 	"github.com/dispatchlabs/disgo/commons/types"
 	"github.com/dispatchlabs/disgo/commons/utils"
 	"github.com/dispatchlabs/disgo/sdk"
-	"github.com/dispatchlabs/samples/transactions/config"
+	"github.com/dispatchlabs/samples/common-util/config"
 	"github.com/dispatchlabs/samples/transactions/helper"
 	"os"
 	"time"
@@ -17,7 +17,7 @@ var privateKey 	= "0f86ea981203b26b5b8244c8f661e30e5104555068a4bd168d3e3015db9bb
 var from 		= "3ed25f42484d517cdfc72cafb7ebc9e8baa52c2c"
 
 var delay = time.Millisecond * 2
-var txCount = 100
+var txCount = 1
 var queueEndpoint = "/v1/queue"
 var testMap map[string]time.Time
 var queueTimeout = time.Second * 5
@@ -29,7 +29,9 @@ func main() {
 	addressToUse := "d7a6acf5f89cf2ca4d618b3a5aeeb3d3ef4e0574"
 	switch arg {
 	case "setup":
-		config.SetUp(5, 3500)
+		//config.SetUp(5, 3500)
+	case "update":
+		config.RefreshDisgoExecutable("")
 	case "execute", "test":
 		//transaction := sendGrpcTransactions(addressToUse)
 		hashes := sendHttpTransactions(addressToUse)
