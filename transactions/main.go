@@ -93,7 +93,7 @@ func main() {
 			fmt.Println("executeVarArgContract must have at least 3 arguments\n")
 			break
 		}
-		executeVarArgContract(os.Args[2], os.Args[3], os.Args[4], os.Args[5:])
+		executeVarArgContract(os.Args[2], os.Args[3], os.Args[4:])
 	case "deployAndExecute":
 		contractAddress := deployContract()
 		fmt.Printf("\nContract Address: %s\n", contractAddress)
@@ -210,18 +210,17 @@ func NewManualExecuteTx(toAddress string, method string) *types.Transaction {
 
 }
 
-func executeVarArgContract(contractAddress string, abi_file string, method string, args []string) {
+func executeVarArgContract(contractAddress string, method string, args []string) {
 	fmt.Println(contractAddress)
-	fmt.Println(abi_file)
 	fmt.Println(method)
 	fmt.Println(args)
 
-	hash, err := sdk.ExecuteSmartContractTransaction(getRandomDelegate(), privateKey, from, contractAddress, method, helper.GetParamsForMethod(method))
-	if err != nil {
-		utils.Error(err)
-	}
-	time.Sleep(3 * time.Second)
-	getReceipt(hash)
+	var tx *types.Transaction
+	tx = helper.GetNewExecuteTxWithVarableParams(contractAddress, method, args)
+
+	helper.PostTx(tx, getRandomDelegateURL("transactions"))
+	time.Sleep(queueTimeout)
+	getReceipt(tx.Hash)
 }
 
 func getReceipt(hash string) types.Receipt {
@@ -255,35 +254,59 @@ func getRandomDelegate() types.Node {
 	return delegates[rand]
 }
 
-//func runTransfers(toAddress string) {
-//	var startTime = time.Now()
-//	var transactions = make([]*types.Transaction, 0)
-//	//offset := 1000 * (txCount+1)
-//	//ts := utils.ToMilliSeconds(time.Now()) - int64(offset)En
-//
-//	//make the transactions first.
-//	var tx *types.Transaction
-//
-//	for i := 0; i < txCount; i++ {
-//		tx = helper.GetTransaction(toAddress)
-//		transactions = append(transactions, tx)
-//		helper.AddTx(i+1, tx)
-//		time.Sleep(delay * 2)
-//	}
-//
-//	types.SortByTime(transactions, false)
-//	for _, tx := range transactions {
-//		helper.PostTx(tx, getRandomDelegateURL("transactions"))
-//		testMap[tx.Hash] = time.Now()
-//	}
-//	time.Sleep(time.Second)
-//	fmt.Printf("QUEUE DUMP: \n%s\n", helper.GetQueue(queueEndpoint))
-//	time.Sleep(queueTimeout)
-//	for k, _ := range testMap {
-//		receipt := getReceipt(k)
-//		helper.AddReceipt(k, receipt)
-//	}
-//
-//	fmt.Println(fmt.Sprintf("TXes: %d, TOTAL Time: [%v] Nanoseconds\n\n", txCount, time.Since(startTime).Nanoseconds()))
-//	helper.PrintTiming()
+
+func getRandomDelegateURL(endpoint string) string {
+	url := fmt.Sprintf("http://localhost:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
+	//url := fmt.Sprintf("http://35.203.143.69:%d/v1/%s", getRandomDelegate().HttpEndpoint.Port, endpoint)
+	// url := fmt.Sprintf("http://35.233.231.3:%d/v1/%s", 1975, endpoint)
+	return url
+}
+
+func runTransfers(toAddress string) {
+	var startTime = time.Now()
+	var transactions = make([]*types.Transaction, 0)
+	//offset := 1000 * (txCount+1)
+	//ts := utils.ToMilliSeconds(time.Now()) - int64(offset)En
+
+	//make the transactions first.
+	var tx *types.Transaction
+
+	for i := 0; i < txCount; i++ {
+		tx = helper.GetTransaction(toAddress)
+		transactions = append(transactions, tx)
+		helper.AddTx(i+1, tx)
+		time.Sleep(delay * 2)
+	}
+
+	types.SortByTime(transactions, false)
+	for _, tx := range transactions {
+		helper.PostTx(tx, getRandomDelegateURL("transactions"))
+		testMap[tx.Hash] = time.Now()
+	}
+	time.Sleep(time.Second)
+	fmt.Printf("QUEUE DUMP: \n%s\n", helper.GetQueue(queueEndpoint))
+	time.Sleep(queueTimeout)
+	for k, _ := range testMap {
+		receipt := getReceipt(k)
+		helper.AddReceipt(k, &receipt)
+	}
+
+	fmt.Println(fmt.Sprintf("TXes: %d, TOTAL Time: [%v] Nanoseconds\n\n", txCount, time.Since(startTime).Nanoseconds()))
+	helper.PrintTiming()
+}
+
+func TransferTest(toAddress string) {
+	var tx *types.Transaction
+
+	for i := 0; i < txCount; i++ {
+		tx = helper.GetTransaction(toAddress)
+		helper.PostTx(tx, getRandomDelegateURL("transactions"))
+		time.Sleep(delay)
+	}
+}
+
+//func testBroken() {
+//	tx := helper.GetNewBadDeployTx()
+//	helper.PostTx(tx, getRandomDelegateURL("transactions"))
+//	getReceipt(tx.Hash)
 //}
