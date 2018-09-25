@@ -1,0 +1,1 @@
+[{"constant":false,"inputs":[{"name":"key","type":"string"},{"name":"value","type":"bytes"}],"name":"set","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"key","type":"string"}],"name":"get","outputs":[{"name":"","type":"bytes"}],"payable":false,"stateMutability":"view","type":"function"}]
