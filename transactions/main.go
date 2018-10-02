@@ -21,10 +21,14 @@ var txCount = 1
 var queueEndpoint = "/v1/queue"
 var testMap map[string]time.Time
 var queueTimeout = time.Second * 5
+var seedIp = "localhost:1975"
+//var seedIp = "35.230.115.115:1975" //perf cluster seed
 
 func main() {
 
 	arg := os.Args[1]
+	//ipToUse := "35.230.115.115:1975"
+	ipToUse := "localhost:1975"
 
 	addressToUse := "d7a6acf5f89cf2ca4d618b3a5aeeb3d3ef4e0574"
 	switch arg {
@@ -32,17 +36,39 @@ func main() {
 		//config.SetUp(5, 3500)
 	case "update":
 		config.RefreshDisgoExecutable("")
+	case "clearDB":
+		config.ClearDB("")
 	case "execute", "test":
 		//transaction := sendGrpcTransactions(addressToUse)
 		hashes := sendHttpTransactions(addressToUse)
 
-		delegates, err := sdk.GetDelegates("localhost:1975")
+		getTxResult(ipToUse, hashes[0])
+		delegates, err := sdk.GetDelegates(seedIp)
+		if err != nil {
+			utils.Fatal(err)
+		}
+		time.Sleep(time.Second * 6)
+		for _, delegate := range delegates {
+			tx, err := sdk.GetTransaction(delegate, hashes[0])
+			if err != nil {
+				utils.Error("Error getting Transaction ", err)
+			}
+			if tx == nil {
+				fmt.Printf("Transaction from Delegate: %s is not found yet\n", delegate.String())
+			} else {
+				fmt.Printf("Transaction from Delegate: %s is \n%s\n", delegate.String(), tx.ToPrettyJson())
+			}
+		}
+	case "pull":
+		txHash := os.Args[2]
+		delegates, err := sdk.GetDelegates(ipToUse)
+		//delegates, err := sdk.GetDelegates("localhost:1975")
 		if err != nil {
 			utils.Fatal(err)
 		}
 		time.Sleep(time.Second * 1)
 		for _, delegate := range delegates {
-			tx, err := sdk.GetTransaction(delegate, hashes[0])
+			tx, err := sdk.GetTransaction(delegate, txHash)
 			if err != nil {
 				utils.Error("Error getting Transaction ", err)
 			}
@@ -104,6 +130,25 @@ func main() {
 	}
 	//testMap = map[string]time.Time{}
 
+}
+
+func getTxResult(seedUrl, hash string) {
+	delegates, err := sdk.GetDelegates(seedUrl)
+	if err != nil {
+		utils.Fatal(err)
+	}
+	time.Sleep(time.Second * 1)
+	for _, delegate := range delegates {
+		tx, err := sdk.GetTransaction(delegate, hash)
+		if err != nil {
+			utils.Error("Error getting Transaction ", err)
+		}
+		if tx == nil {
+			fmt.Printf("Transaction from Delegate: %s is not found yet\n", delegate.String())
+		} else {
+			fmt.Printf("Transaction from Delegate: %s is \n%s\n", delegate.String(), tx.ToPrettyJson())
+		}
+	}
 }
 
 //func sendGrpcTransactions(toAddress string) *types.Transaction {
@@ -242,7 +287,8 @@ func getReceipt(hash string) types.Receipt {
 }
 
 func getRandomDelegate() types.Node {
-	delegates, err := sdk.GetDelegates("localhost:1975")
+
+	delegates, err := sdk.GetDelegates(seedIp)
 	if err != nil {
 		utils.Error(err)
 	}
