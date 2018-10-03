@@ -164,11 +164,11 @@ func getVariableParamsForContract(args []string) []interface{} {
 
 		switch kind {
 		case "uint":
-			u64, _ := strconv.ParseUint(val, 10, 32)
-			argList = append(argList, u64)
+			u32, _ := strconv.ParseUint(val, 10, 32)
+			argList = append(argList, u32)
 		case "int":
-			i64, _ := strconv.ParseInt(val, 10, 32)
-			argList = append(argList, i64)
+			i32, _ := strconv.ParseInt(val, 10, 32)
+			argList = append(argList, i32)
 		case "string":
 			argList = append(argList, val)
 		case "bytes":
@@ -180,6 +180,23 @@ func getVariableParamsForContract(args []string) []interface{} {
 			} else {
 				argList = append(argList, false)
 			}
+
+		// this one is hex without the 0x at the front
+		case "int256":
+			i64, err := strconv.ParseInt(val, 16, 64)
+			if err != nil {
+				panic(err)
+			}
+			argList = append(argList, i64)
+
+		// this one is hex without the 0x at the front
+		case "uint256":
+			fmt.Println("XXXXXXXXX", val)
+			u64, err := strconv.ParseUint(val, 16, 64)
+			if err != nil {
+				panic(err)
+			}
+			argList = append(argList, u64)
 		}
 	}
 

@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 contract ContractTest {
  address public _sender;
-  address public _created_contract;
+ address public _created_contract;
 
   function _create(bytes code) public returns (address addr) {
     assembly {
@@ -56,7 +56,7 @@ contract ContractTest {
   // delegatecall(g, a, in, insize, out, outsize)
   // print out the caller ... make sure it isn't the calling contract
   // change storage and make sure it is being modified locally
-  function test_delegatecall() public returns(bool) {
+  function test_delegatecall() public view returns(bool) {
     require(_created_contract.delegatecall(bytes4(keccak256("set_sender()"))));
 
     return _sender == msg.sender;
@@ -86,7 +86,7 @@ contract ContractTest {
   // staticcall(g, a, in, insize, out, outsize)
   // try to change data and hopefully fail ... do this by calling
   // one of the callcode methods above
-  function test_staticcall_failure() public returns(bool) {
+  function test_staticcall_failure() public view returns(bool) {
     address sender;
     bytes4 sig = bytes4(keccak256("set_sender()"));
     address addr = _created_contract;

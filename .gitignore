@@ -15,20 +15,5 @@ MANIFEST
 transactions/transactions.exe
 transactions/transactions
 
-run-nodes-locally/seed/disgo
-run-nodes-locally/seed/db
-
-run-nodes-locally/delegate-1/disgo
-run-nodes-locally/delegate-1/db
-
-run-nodes-locally/delegate-2/disgo
-run-nodes-locally/delegate-2/db
-
-run-nodes-locally/delegate-3/disgo
-run-nodes-locally/delegate-3/db
-
-run-nodes-locally/delegate-4/disgo
-run-nodes-locally/delegate-4/db
-
-run-nodes-locally/delegate-5/disgo
-run-nodes-locally/delegate-5/db
+run-nodes-locally/seed*
+run-nodes-locally/delegate*

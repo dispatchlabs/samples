@@ -1,1 +1,9 @@
-{"address":"d9df33a646d3feab4b96166d00a0355d4709ebee","balance":0,"created":"2018-09-04T07:03:45.936950105-07:00","name":"","nonce":0,"privateKey":"4bd8a9bf849280952229bdef8535da6c3e0458c7a53691647899fbf1d2b1d560","updated":"2018-09-04T07:03:45.936950105-07:00"}
+{
+  "address": "02b7f7346c34fbd4a81181964e417f2b3ea96fdb",
+  "privateKey": "dc5a03f297a7b3b5ddc384d26cbe9f92034fa6908a01396e7a26af9bb8fdca80",
+  "name": "delegate-3",
+  "balance": 0,
+  "updated": "2018-09-12T12:46:55.970152-07:00",
+  "created": "2018-09-12T12:46:55.970152-07:00",
+  "nonce": 0
+}
