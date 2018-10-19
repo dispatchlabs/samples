@@ -39,6 +39,8 @@ cd /go-binaries
 
 echo 'dispatch-services ALL=(ALL) NOPASSWD:  ALL'  | sudo tee --append /etc/sudoers
 
+echo 'Setup'
+
 # Setup Disgo As Service
 sudo useradd dispatch-services -s /sbin/nologin -M
 sudo chown -R dispatch-services:dispatch-services /go-binaries
