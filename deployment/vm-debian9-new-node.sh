@@ -34,6 +34,11 @@ sudo mkdir -p /go-binaries/config
 sudo mv ./disgo /go-binaries/
 cd /go-binaries
 
+
+# Update Sudoers for no tty and nopasswd for transient update service
+
+echo 'dispatch-services ALL=(ALL) NOPASSWD:  ALL'  | sudo tee --append /etc/sudoers
+
 # Setup Disgo As Service
 sudo useradd dispatch-services -s /sbin/nologin -M
 sudo chown -R dispatch-services:dispatch-services /go-binaries
