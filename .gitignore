@@ -11,9 +11,9 @@ key.json
 LOCK
 MANIFEST
 
-run-nodes-locally/seed*/*
-run-nodes-locally/delegate-*/*
-
 *.log
 transactions/transactions.exe
 transactions/transactions
+
+run-nodes-locally/seed*
+run-nodes-locally/delegate*
